@@ -52,7 +52,7 @@ IberLEF@SEPLN 2019, pp. 618–638. [doi:10.5281/zenodo.4279323](https://doi.org/
 Base model: [`BSC-LT/roberta-base-biomedical-clinical-es`](https://huggingface.co/BSC-LT/roberta-base-biomedical-clinical-es) (Apache-2.0).
 
 ## Licence
-Code under the [Apache License 2.0](LICENSE). See [NOTICE](NOTICE) for third-party attributions.
+Code under the [MIT](LICENSE). See [LICENCE](LICENCE) for third-party attributions.
 
 ## Disclaimer
 Academic project. Not a certified system for real health data.
