@@ -1,0 +1,29 @@
+name: Task
+description: A task from the plan (specs/tasks.md) or a newly agreed task
+title: "Tn.m · "
+body:
+  - type: input
+    id: hours
+    attributes:
+      label: Estimate (h)
+    validations:
+      required: true
+  - type: input
+    id: spec
+    attributes:
+      label: Related spec
+      description: FR-xx, NFR-xx, a design.md section or an ADR
+  - type: textarea
+    id: done_when
+    attributes:
+      label: Done when
+      description: Verifiable completion criterion
+    validations:
+      required: true
+  - type: checkboxes
+    id: sdd
+    attributes:
+      label: SDD
+      options:
+        - label: The task is in specs/tasks.md (or will be added in this PR)
+          required: true
