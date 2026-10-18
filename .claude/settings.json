@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(uv sync)",
+      "Bash(uv sync *)",
+      "Bash(uv run pytest)",
+      "Bash(uv run pytest *)",
+      "Bash(uv run ruff *)",
+      "Bash(uv run python scripts/github_backlog.py --dry-run)",
+      "Bash(uv run python scripts/hours.py *)",
+      "Bash(git status)",
+      "Bash(git status *)",
+      "Bash(git diff)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git switch *)",
+      "Bash(git checkout -b *)",
+      "Bash(gh issue view *)",
+      "Bash(gh issue list *)",
+      "Bash(gh pr view *)",
+      "Bash(gh pr list *)",
+      "Bash(docker build *)"
+    ],
+    "ask": [
+      "Bash(git push *)",
+      "Bash(gh issue create *)",
+      "Bash(gh issue close *)",
+      "Bash(gh issue comment *)",
+      "Bash(gh pr create *)",
+      "Bash(gh pr merge *)",
+      "Bash(uv add *)",
+      "Bash(uv remove *)",
+      "Bash(docker push *)",
+      "Bash(aws *)",
+      "Bash(uv run python scripts/github_backlog.py *)",
+      "Edit(./docs/feasibility.md)",
+      "Edit(./specs/requirements.md)",
+      "Edit(./.github/workflows/**)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(**/*.pem)",
+      "Read(**/credentials)",
+      "Read(~/.aws/**)",
+      "Bash(rm -rf *)",
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(git reset --hard *)",
+      "Bash(aws iam delete-*)",
+      "Bash(curl * | sh)",
+      "Bash(curl * | bash)"
+    ]
+  }
+}
