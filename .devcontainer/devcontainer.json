@@ -2,10 +2,11 @@
   // TFM development environment on GitHub Codespaces.
   // Python 3.11 + Node (for Claude Code) + Docker + GitHub CLI + AWS CLI.
   "name": "clinical-deid-es",
-  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+ // Pinned to Debian bookworm: the docker-in-docker feature does not support trixie yet.
+   "image": "mcr.microsoft.com/devcontainers/python:1-3.11-bookworm",
   "features": {
     "ghcr.io/devcontainers/features/node:1": { "version": "lts" },
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:4.1.3": {},
     "ghcr.io/devcontainers/features/github-cli:1": {},
     "ghcr.io/devcontainers/features/aws-cli:1": {}
   },
