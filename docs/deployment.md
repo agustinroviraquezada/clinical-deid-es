@@ -10,19 +10,22 @@ function `clinical-deid`, IAM roles `clinical-deid-github-deploy` and `clinical-
 
 ```
 push to main ──► GitHub Actions (deploy.yml)
-                   │ 1. docker build + smoke test with the Lambda emulator
-                   │ 2. asks GitHub for a short-lived OIDC token
+                   │ job build-test: docker build + smoke test with the Lambda emulator
+                   │                 (no AWS access), hands the image over as an artifact
+                   │ job deploy (environment "production", main only):
+                   │                 asks GitHub for a short-lived OIDC token
                    ▼
-                 AWS STS ── trust policy: only repo …/clinical-deid-es, branch main
+                 AWS STS ── trust policy: only repo …/clinical-deid-es, environment production
                    │ temporary credentials of role clinical-deid-github-deploy
                    ▼
-                 ECR (push image :<sha>) ──► Lambda update-function-code
-                                                │
-                 Function URL (auth AWS_IAM) ◄──┘  only signed requests get in
+                 ECR (push image :<sha>, tags immutable) ──► Lambda update-function-code
+                                                               │
+                 Function URL (auth AWS_IAM) ◄─────────────────┘  only signed requests get in
 ```
 
 No AWS access keys are stored in GitHub: OIDC exchanges a token that GitHub signs for each run
-for credentials that expire within an hour.
+for credentials that expire within an hour. Only the `deploy` job, which runs in the GitHub
+environment `production`, can request that token. The environment only accepts `main`.
 
 ## Test the image locally (no AWS needed)
 
@@ -76,8 +79,10 @@ echo "$ACCOUNT_ID"   # check it is the project account before going on
 ## 1. ECR repository (where images are stored)
 
 ```bash
+# IMMUTABLE: a tag (the commit SHA) can never be overwritten with a different image.
 aws ecr create-repository --repository-name clinical-deid \
-  --image-scanning-configuration scanOnPush=true
+  --image-scanning-configuration scanOnPush=true \
+  --image-tag-mutability IMMUTABLE
 
 # Keep only the 5 most recent images so storage stays almost free.
 aws ecr put-lifecycle-policy --repository-name clinical-deid --lifecycle-policy-text '{
@@ -96,7 +101,8 @@ aws iam create-open-id-connect-provider \
   --client-id-list sts.amazonaws.com
 ```
 
-The deploy role can only be assumed from `main` of this repository (`infra/iam/github-oidc-trust.json`).
+The deploy role can only be assumed by a job running in the `production` environment of this
+repository (`infra/iam/github-oidc-trust.json`).
 It can only push to the `clinical-deid` repository and update the `clinical-deid` function
 (`infra/iam/github-deploy-policy.json`).
 
@@ -108,6 +114,21 @@ aws iam create-role --role-name clinical-deid-github-deploy \
   --assume-role-policy-document file:///tmp/trust.json
 aws iam put-role-policy --role-name clinical-deid-github-deploy \
   --policy-name deploy --policy-document file:///tmp/deploy-policy.json
+```
+
+### GitHub environment `production`
+
+A GitHub environment groups the deployment settings. Here it restricts deployment to `main`:
+a job that declares `environment: production` from any other branch is rejected before it
+starts. The OIDC token of that job carries `environment:production`, and AWS checks it.
+
+```bash
+REPO=agustinroviraquezada/clinical-deid-es
+gh api -X PUT "repos/$REPO/environments/production" --input - <<'EOF'
+{"deployment_branch_policy": {"protected_branches": false, "custom_branch_policies": true}}
+EOF
+gh api -X POST "repos/$REPO/environments/production/deployment-branch-policies" \
+  -f name=main -f type=branch
 ```
 
 ## 3. First run: push the image only
@@ -143,6 +164,11 @@ aws iam create-role --role-name clinical-deid-lambda \
 aws iam attach-role-policy --role-name clinical-deid-lambda \
   --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
+# Create the log group ourselves so that logs expire after 14 days. Otherwise Lambda creates
+# it on the first call and keeps the logs forever (privacy by design and cost).
+aws logs create-log-group --log-group-name /aws/lambda/clinical-deid
+aws logs put-retention-policy --log-group-name /aws/lambda/clinical-deid --retention-in-days 14
+
 # A new role takes a few seconds to become usable.
 sleep 10
 
@@ -157,6 +183,16 @@ aws lambda create-function-url-config --function-name clinical-deid --auth-type 
 ```
 
 512 MB is enough for the hello world. Design §9 proposes 3,008 MB once the model is in the image.
+
+**Reserved concurrency (design §8, OWASP LLM10).** This caps how many copies of the function
+run at the same time, and with it the cost of a burst of requests. New accounts often have a
+total limit of only 10 concurrent executions, and AWS requires 10 of them to stay unreserved.
+Apply it once the quota increase requested in T1.1 is granted:
+
+```bash
+aws lambda put-function-concurrency --function-name clinical-deid \
+  --reserved-concurrent-executions 5
+```
 
 ## 5. Turn on continuous deployment
 
@@ -177,11 +213,13 @@ export FUNCTION_URL=$(aws lambda get-function-url-config --function-name clinica
 curl -s -o /dev/null -w "%{http_code}\n" "${FUNCTION_URL}api/health"
 
 # Request signed with your AWS credentials (SigV4): must return {"status":"ok",...}.
-uvx awscurl --service lambda --region "$AWS_REGION" "${FUNCTION_URL}api/health"
+# The version is pinned because this tool runs with your AWS credentials.
+uvx awscurl==0.45 --service lambda --region "$AWS_REGION" "${FUNCTION_URL}api/health"
 ```
 
 ## Later lifecycle (design §9)
 
 - **20 Nov:** switch the URL to `--auth-type NONE` (`aws lambda update-function-url-config`)
   together with the app login (ADR-0006).
-- **After the grade:** delete the function, the image repository and both roles.
+- **After the grade:** delete the function, the image repository, the log group, both roles,
+  the OIDC provider and the GitHub environment.

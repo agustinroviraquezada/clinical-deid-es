@@ -1,9 +1,13 @@
 # Continuous deployment to AWS Lambda (design §9, ADR-0005).
 #
-# Every run builds the container image and smoke-tests it locally with the Lambda Runtime
-# Interface Emulator (RIE). Only on `main`, and only once the AWS resources exist (the repository
-# variable AWS_DEPLOY_ROLE_ARN is set, see docs/deployment.md), the same image is pushed to ECR
-# and the Lambda function is updated. Until then the deploy steps are skipped, not failed.
+# Job `build-test` builds the container image and smoke-tests it locally with the Lambda Runtime
+# Interface Emulator (RIE). It has no access to AWS.
+# Job `deploy` runs only on `main`, and only once the AWS resources exist (the repository variable
+# AWS_DEPLOY_ROLE_ARN is set, see docs/deployment.md). It takes the exact image that was tested,
+# pushes it to ECR and updates the Lambda function. Until then it is skipped, not failed.
+#
+# Third-party actions are pinned by full commit SHA (the comment shows the release): a tag can be
+# moved to other code, a commit SHA cannot. This matters most in `deploy`, which holds AWS credentials.
 name: Deploy
 
 on:
@@ -21,11 +25,9 @@ on:
       - uv.lock
       - src/**
 
-# Least privilege: read the repository and request an OIDC token. The token is useless outside
-# `main` because the AWS role trust policy (infra/iam/github-oidc-trust.json) only accepts main.
+# Default for every job: read the repository and nothing else. Only `deploy` asks for more.
 permissions:
   contents: read
-  id-token: write
 
 # Never run two deployments at once, and never cancel one halfway through.
 concurrency:
@@ -35,14 +37,16 @@ concurrency:
 env:
   AWS_REGION: eu-west-1
   IMAGE: clinical-deid:${{ github.sha }}
+  # True only when the `deploy` job will run (same condition as its `if:`).
+  WILL_DEPLOY: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.AWS_DEPLOY_ROLE_ARN != '' }}
 
 jobs:
-  build-test-deploy:
+  build-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Build the container image
         run: docker build --tag "$IMAGE" .
@@ -83,23 +87,57 @@ jobs:
         if: failure()
         run: docker logs lambda || true
 
-      # ---- Deployment: only on main, and only when AWS is configured ----
+      # Hand the tested image to the `deploy` job as a file, so the image that is deployed is
+      # byte-for-byte the one that passed the smoke test (no rebuild).
+      - name: Save the tested image
+        if: env.WILL_DEPLOY == 'true'
+        run: docker save "$IMAGE" | gzip > image.tar.gz
+
+      - name: Upload the tested image for the deploy job
+        if: env.WILL_DEPLOY == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: image
+          path: image.tar.gz
+          retention-days: 1
+
+      - name: Explain why deployment is skipped
+        if: github.ref == 'refs/heads/main' && vars.AWS_DEPLOY_ROLE_ARN == ''
+        run: echo "::notice::Deployment skipped — set the AWS_DEPLOY_ROLE_ARN repository variable (docs/deployment.md)."
+
+  deploy:
+    needs: build-test
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.AWS_DEPLOY_ROLE_ARN != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # GitHub environment limited to `main`. The AWS trust policy only accepts OIDC tokens issued
+    # for this environment, so no other workflow, branch or job can assume the deploy role.
+    environment: production
+    # Only this job may request an OIDC token from GitHub.
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Download the tested image
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: image
+
+      - name: Load the image into Docker
+        run: gunzip -c image.tar.gz | docker load
 
       - name: Authenticate to AWS with OIDC (no stored keys)
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.AWS_DEPLOY_ROLE_ARN != ''
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
         with:
           role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Log in to Amazon ECR
         id: ecr
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.AWS_DEPLOY_ROLE_ARN != ''
-        uses: aws-actions/amazon-ecr-login@v2
+        uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd # v2.1.7
 
       - name: Push the tested image to ECR (tagged with the commit SHA)
         id: push
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.AWS_DEPLOY_ROLE_ARN != ''
         env:
           REGISTRY: ${{ steps.ecr.outputs.registry }}
           REPOSITORY: ${{ vars.ECR_REPOSITORY }}
@@ -112,7 +150,7 @@ jobs:
       # Skipped until LAMBDA_FUNCTION_NAME is set: the very first run only pushes the image,
       # because the function itself is created from an image that already exists in ECR.
       - name: Point the Lambda function at the new image and wait
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.AWS_DEPLOY_ROLE_ARN != '' && vars.LAMBDA_FUNCTION_NAME != ''
+        if: vars.LAMBDA_FUNCTION_NAME != ''
         env:
           FUNCTION: ${{ vars.LAMBDA_FUNCTION_NAME }}
           IMAGE_URI: ${{ steps.push.outputs.uri }}
@@ -120,7 +158,3 @@ jobs:
           aws lambda update-function-code --function-name "$FUNCTION" --image-uri "$IMAGE_URI" \
             --query 'LastUpdateStatus' --output text
           aws lambda wait function-updated --function-name "$FUNCTION"
-
-      - name: Explain why deployment was skipped
-        if: github.ref == 'refs/heads/main' && vars.AWS_DEPLOY_ROLE_ARN == ''
-        run: echo "::notice::Deployment skipped — set the AWS_DEPLOY_ROLE_ARN repository variable (docs/deployment.md)."
