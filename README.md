@@ -23,11 +23,13 @@ Details in `specs/design.md`.
 ```
 .claude/        Claude Code configuration: permissions, rules and skills
 .devcontainer/  Development environment (Codespaces)
-docs/           Feasibility report (frozen), ADRs, workflow, hours log
+docs/           Feasibility report (frozen), ADRs, workflow, deployment runbook, hours log
+infra/          IAM policies for the AWS deployment (docs/deployment.md)
 scripts/        GitHub backlog and hours log
 specs/          Spec Driven Development: requirements, design and tasks
 src/            Application code
 tests/          Tests
+Dockerfile      AWS Lambda container image
 AGENTS.md       Instructions for coding agents
 ```
 

@@ -1,0 +1,23 @@
+# Keep the build context small and free of secrets: only what the Dockerfile copies is needed.
+.git
+.github
+.claude
+.devcontainer
+.venv
+.pytest_cache
+.ruff_cache
+**/__pycache__
+.env
+.env.*
+data/
+models/
+notebooks/
+tests/
+docs/
+specs/
+scripts/
+infra/
+*.safetensors
+*.bin
+*.pt
+*.onnx
