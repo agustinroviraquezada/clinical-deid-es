@@ -151,7 +151,7 @@ Errors: 400 validation, 401 no session, 413 text > 10,000 characters, 429 limit,
 ## 11. Stack (DECIDED unless stated)
 
 Python 3.11 · uv · FastAPI · Pydantic · transformers + PyTorch (CPU at inference) · seqeval ·
-boto3 · Mangum (PROPOSED, ASGI→Lambda adapter) · pytest · ruff · pre-commit · Docker ·
+boto3 · Mangum (ASGI→Lambda adapter) · pytest · ruff · pre-commit · Docker ·
 GitHub Actions · AWS Lambda, ECR, IAM, Bedrock, Budgets · Hugging Face Hub · Colab.
 
 ## 12. Licensing (DECIDED)

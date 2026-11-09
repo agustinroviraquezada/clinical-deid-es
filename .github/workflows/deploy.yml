@@ -1,0 +1,126 @@
+# Continuous deployment to AWS Lambda (design §9, ADR-0005).
+#
+# Every run builds the container image and smoke-tests it locally with the Lambda Runtime
+# Interface Emulator (RIE). Only on `main`, and only once the AWS resources exist (the repository
+# variable AWS_DEPLOY_ROLE_ARN is set, see docs/deployment.md), the same image is pushed to ECR
+# and the Lambda function is updated. Until then the deploy steps are skipped, not failed.
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  # Manual run from the Actions tab.
+  workflow_dispatch:
+  # Pull requests that change the image only build and smoke-test it; they never deploy.
+  pull_request:
+    paths:
+      - Dockerfile
+      - .dockerignore
+      - .github/workflows/deploy.yml
+      - pyproject.toml
+      - uv.lock
+      - src/**
+
+# Least privilege: read the repository and request an OIDC token. The token is useless outside
+# `main` because the AWS role trust policy (infra/iam/github-oidc-trust.json) only accepts main.
+permissions:
+  contents: read
+  id-token: write
+
+# Never run two deployments at once, and never cancel one halfway through.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: eu-west-1
+  IMAGE: clinical-deid:${{ github.sha }}
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Build the container image
+        run: docker build --tag "$IMAGE" .
+
+      # The Lambda base image includes the RIE: it exposes the same "invoke" API as Lambda on
+      # port 8080, so the real handler runs here exactly as it will in AWS.
+      - name: Smoke test /api/health through the Lambda emulator
+        run: |
+          docker run --detach --name lambda --publish 9000:8080 "$IMAGE"
+          cat > event.json <<'EOF'
+          {
+            "version": "2.0",
+            "routeKey": "$default",
+            "rawPath": "/api/health",
+            "rawQueryString": "",
+            "headers": {"host": "localhost"},
+            "requestContext": {
+              "http": {"method": "GET", "path": "/api/health", "protocol": "HTTP/1.1",
+                       "sourceIp": "127.0.0.1", "userAgent": "smoke-test"},
+              "requestId": "smoke-test", "routeKey": "$default", "stage": "$default"
+            },
+            "isBase64Encoded": false
+          }
+          EOF
+          for attempt in 1 2 3 4 5; do
+            if curl --silent --fail --output response.json \
+                 --data @event.json \
+                 http://localhost:9000/2015-03-31/functions/function/invocations; then
+              break
+            fi
+            sleep 2
+          done
+          cat response.json; echo
+          test "$(jq -r '.statusCode' response.json)" = "200"
+          jq -r '.body' response.json | jq -e '.status == "ok"'
+
+      - name: Show the emulator logs if the smoke test failed
+        if: failure()
+        run: docker logs lambda || true
+
+      # ---- Deployment: only on main, and only when AWS is configured ----
+
+      - name: Authenticate to AWS with OIDC (no stored keys)
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.AWS_DEPLOY_ROLE_ARN != ''
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        id: ecr
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.AWS_DEPLOY_ROLE_ARN != ''
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Push the tested image to ECR (tagged with the commit SHA)
+        id: push
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.AWS_DEPLOY_ROLE_ARN != ''
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+          REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+        run: |
+          uri="$REGISTRY/$REPOSITORY:${{ github.sha }}"
+          docker tag "$IMAGE" "$uri"
+          docker push "$uri"
+          echo "uri=$uri" >> "$GITHUB_OUTPUT"
+
+      # Skipped until LAMBDA_FUNCTION_NAME is set: the very first run only pushes the image,
+      # because the function itself is created from an image that already exists in ECR.
+      - name: Point the Lambda function at the new image and wait
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.AWS_DEPLOY_ROLE_ARN != '' && vars.LAMBDA_FUNCTION_NAME != ''
+        env:
+          FUNCTION: ${{ vars.LAMBDA_FUNCTION_NAME }}
+          IMAGE_URI: ${{ steps.push.outputs.uri }}
+        run: |
+          aws lambda update-function-code --function-name "$FUNCTION" --image-uri "$IMAGE_URI" \
+            --query 'LastUpdateStatus' --output text
+          aws lambda wait function-updated --function-name "$FUNCTION"
+
+      - name: Explain why deployment was skipped
+        if: github.ref == 'refs/heads/main' && vars.AWS_DEPLOY_ROLE_ARN == ''
+        run: echo "::notice::Deployment skipped — set the AWS_DEPLOY_ROLE_ARN repository variable (docs/deployment.md)."
