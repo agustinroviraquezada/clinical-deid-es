@@ -1,0 +1,42 @@
+# Continuous integration: lint, format check and tests on every push and pull request.
+# Uses only test doubles (adapters/fakes.py): no network calls to Bedrock, no model download, no cost.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+# The workflow token can only read the repository (least privilege).
+permissions:
+  contents: read
+
+# A new push to the same branch cancels the run still in progress.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Install uv (with dependency cache)
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.11"
+          enable-cache: true
+
+      - name: Install dependencies from the lockfile
+        run: uv sync --locked
+
+      - name: Lint (ruff)
+        run: uv run ruff check .
+
+      - name: Check formatting (ruff format)
+        run: uv run ruff format --check .
+
+      - name: Run tests (integration tests excluded by pytest addopts)
+        run: uv run pytest
