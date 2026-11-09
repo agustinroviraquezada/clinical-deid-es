@@ -24,6 +24,43 @@ push to main ──► GitHub Actions (deploy.yml)
 No AWS access keys are stored in GitHub: OIDC exchanges a token that GitHub signs for each run
 for credentials that expire within an hour.
 
+## Test the image locally (no AWS needed)
+
+You need Docker Desktop. The Lambda base image includes the Runtime Interface Emulator (RIE): a
+small server that exposes the same "invoke" API as Lambda on port 8080. The handler therefore
+runs exactly as it will in AWS. This is the same smoke test that `deploy.yml` runs in CI.
+
+```bash
+# 1. Build the image (the first build downloads the Lambda base image, a few hundred MB).
+docker build --tag clinical-deid:local .
+
+# 2. Start it in the background; host port 9000 → emulator port 8080.
+docker run --detach --rm --name lambda-local --publish 9000:8080 clinical-deid:local
+
+# 3. Send a Lambda Function URL event (payload 2.0) for GET /api/health.
+curl -s http://localhost:9000/2015-03-31/functions/function/invocations -d '{
+  "version": "2.0", "routeKey": "$default", "rawPath": "/api/health", "rawQueryString": "",
+  "headers": {"host": "localhost"},
+  "requestContext": {"http": {"method": "GET", "path": "/api/health", "protocol": "HTTP/1.1",
+                              "sourceIp": "127.0.0.1", "userAgent": "local"},
+                     "requestId": "local", "routeKey": "$default", "stage": "$default"},
+  "isBase64Encoded": false}'
+# Expected: {"statusCode": 200, "body": "{\"status\":\"ok\",\"version\":\"0.1.0\"}", ...}
+
+# 4. Look at the emulator logs if something fails, then stop the container (--rm removes it).
+docker logs lambda-local
+docker stop lambda-local
+```
+
+You do not need the emulator to try the API itself: `uv run uvicorn clinical_deid.api.app:app
+--reload --port 8000` is faster. Use the image test when you change the `Dockerfile`, the
+dependencies or `lambda_handler.py`.
+
+On Windows, if Git Bash does not find `docker` (or the build fails with
+`docker-credential-desktop ... not found`), open a new terminal after installing Docker Desktop.
+You can also add its folder to the PATH:
+`export PATH="$(cygpath -u "$LOCALAPPDATA")/Programs/DockerDesktop/resources/bin:$PATH"`.
+
 ## Prerequisites
 
 - T1.1 done: account active, AWS Budgets alerts at 50 % and 80 % of €50.
