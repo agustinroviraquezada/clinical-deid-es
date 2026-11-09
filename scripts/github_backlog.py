@@ -14,6 +14,7 @@ import argparse
 import json
 import re
 import subprocess
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -88,7 +89,10 @@ def gh(*args: str, dry_run: bool) -> str:
     if dry_run:
         print("  [dry-run] gh " + " ".join(args))
         return ""
-    return subprocess.run(["gh", *args], check=True, capture_output=True, text=True).stdout
+    # gh always prints UTF-8; be explicit so Windows does not decode it as cp1252.
+    return subprocess.run(
+        ["gh", *args], check=True, capture_output=True, text=True, encoding="utf-8"
+    ).stdout
 
 
 def existing(dry_run: bool) -> tuple[set[str], set[str], set[str]]:
@@ -114,6 +118,8 @@ def main() -> None:
     )
     parser.add_argument("--dry-run", action="store_true", help="Only show what it would do")
     dry_run = parser.parse_args().dry_run
+    # Task titles contain "·" and "→"; the default Windows console (cp1252) cannot print them.
+    sys.stdout.reconfigure(encoding="utf-8")
 
     tasks = parse(TASKS_FILE.read_text(encoding="utf-8"))
     have_milestones, have_labels, have_issues = existing(dry_run)
