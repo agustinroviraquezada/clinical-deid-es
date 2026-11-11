@@ -67,11 +67,33 @@ You can also add its folder to the PATH:
 ## Prerequisites
 
 - T1.1 done: account active, AWS Budgets alerts at 50 % and 80 % of €50.
-- AWS CLI v2 configured with an administrator identity (not the root user), and `gh` logged in.
+- AWS CLI v2 signed in with the administrator IAM user created in T1.1 (section 0), never with
+  the root user. `gh` logged in.
 - Run the commands from the repository root in Git Bash (or a Codespace).
 
+### 0. CLI access with `aws login` (once per session)
+
+`aws login` (AWS CLI ≥ 2.32) signs the CLI in through the browser with the same IAM user and MFA
+as the console. The CLI then gets temporary credentials that renew themselves for up to 12 hours.
+No access keys are created or stored on disk.
+
+1. `aws --version`: update the CLI if it is older than 2.32.
+2. `aws login --profile deid-admin`: when asked, give region `eu-west-1`. In the browser, sign in
+   as the IAM user (account ID or alias, user name, password, MFA) and approve.
+3. Check: `aws sts get-caller-identity --profile deid-admin` shows the account and
+   `arn:aws:iam::<account>:user/<your IAM user>`. When the session expires, run step 2 again.
+
+Do not create access keys for this user. If `aws login` is not available, IAM Identity Center
+with `aws configure sso` is the alternative that also avoids stored keys.
+
+### Shell setup (every new terminal)
+
 ```bash
+export AWS_PROFILE=deid-admin   # every aws command below uses this profile
 export AWS_REGION=eu-west-1
+# Git Bash rewrites arguments that start with "/" into Windows paths, which would turn
+# /aws/lambda/clinical-deid into C:/Program Files/Git/aws/... This turns that off.
+export MSYS_NO_PATHCONV=1
 export ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 echo "$ACCOUNT_ID"   # check it is the project account before going on
 ```
@@ -106,14 +128,15 @@ repository (`infra/iam/github-oidc-trust.json`).
 It can only push to the `clinical-deid` repository and update the `clinical-deid` function
 (`infra/iam/github-deploy-policy.json`).
 
-```bash
-sed "s/ACCOUNT_ID/$ACCOUNT_ID/g" infra/iam/github-oidc-trust.json > /tmp/trust.json
-sed "s/ACCOUNT_ID/$ACCOUNT_ID/g" infra/iam/github-deploy-policy.json > /tmp/deploy-policy.json
+The policy files contain the placeholder `ACCOUNT_ID`. `sed` replaces it with your account
+number and the result is passed to the CLI directly as a JSON string, so no temporary file is
+needed. A `/tmp` path would not work with the Windows `aws.exe` anyway.
 
+```bash
 aws iam create-role --role-name clinical-deid-github-deploy \
-  --assume-role-policy-document file:///tmp/trust.json
-aws iam put-role-policy --role-name clinical-deid-github-deploy \
-  --policy-name deploy --policy-document file:///tmp/deploy-policy.json
+  --assume-role-policy-document "$(sed "s/ACCOUNT_ID/$ACCOUNT_ID/g" infra/iam/github-oidc-trust.json)"
+aws iam put-role-policy --role-name clinical-deid-github-deploy --policy-name deploy \
+  --policy-document "$(sed "s/ACCOUNT_ID/$ACCOUNT_ID/g" infra/iam/github-deploy-policy.json)"
 ```
 
 ### GitHub environment `production`
