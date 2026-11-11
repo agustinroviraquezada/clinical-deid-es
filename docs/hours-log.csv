@@ -3,3 +3,4 @@ date,hours,task,summary
 2026-11-09,1.5,T1.2,"Package stub, backlog script UTF-8 fix, 26 issues and Projects board created; Codespace check pending"
 2026-11-09,1.0,T1.3,"Ports-and-adapters skeleton, health route, fakes, tests and module READMEs (PR #36)"
 2026-11-09,1.0,T1.4,CI workflow (ruff + pytest) on push and PR; Dependabot updates already configured
+2026-11-11,2.0,T1.5,"Lambda hello world deployed with CD: Dockerfile, deploy.yml (OIDC, environment), IAM, runbook; fixed OIDC subject, image format and immutable tag issues"
