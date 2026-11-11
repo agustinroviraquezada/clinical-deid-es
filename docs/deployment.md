@@ -148,7 +148,8 @@ gh run watch
 ```
 
 `LAMBDA_FUNCTION_NAME` is not set yet, so the run builds, tests and pushes the image, then skips
-the Lambda update. Copy the image URI:
+the Lambda update. Each run tags its image `<commit SHA>-<run id>-<attempt>`, so re-runs never
+collide with the immutable tags. Copy the URI of the most recently pushed image:
 
 ```bash
 export IMAGE_URI=$(aws ecr describe-images --repository-name clinical-deid \

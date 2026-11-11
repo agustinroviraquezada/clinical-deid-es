@@ -139,13 +139,16 @@ jobs:
         id: ecr
         uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd # v2.1.7
 
-      - name: Push the tested image to ECR (tagged with the commit SHA)
+      # ECR tags are immutable, so every run needs its own tag: <commit SHA>-<run id>-<attempt>.
+      # The SHA keeps the commit traceable; the run id and attempt let a manual run or a re-run
+      # of the same commit push a new image instead of failing on an existing tag.
+      - name: Push the tested image to ECR (tagged with commit SHA and run)
         id: push
         env:
           REGISTRY: ${{ steps.ecr.outputs.registry }}
           REPOSITORY: ${{ vars.ECR_REPOSITORY }}
         run: |
-          uri="$REGISTRY/$REPOSITORY:${{ github.sha }}"
+          uri="$REGISTRY/$REPOSITORY:${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}"
           docker tag "$IMAGE" "$uri"
           docker push "$uri"
           echo "uri=$uri" >> "$GITHUB_OUTPUT"
