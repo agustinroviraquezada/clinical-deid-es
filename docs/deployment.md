@@ -244,9 +244,12 @@ export FUNCTION_URL=$(aws lambda get-function-url-config --function-name clinica
 curl -s -o /dev/null -w "%{http_code}\n" "${FUNCTION_URL}api/health"
 
 # Request signed with your AWS credentials (SigV4): must return {"status":"ok",...}.
+# awscurl cannot read an `aws login` session directly, so export the session's temporary
+# credentials as environment variables (eval loads them without printing them).
 # The version is pinned because this tool runs with your AWS credentials.
-uvx awscurl==0.45 --profile "$AWS_PROFILE" --service lambda --region "$AWS_REGION" \
-  "${FUNCTION_URL}api/health"
+eval "$(aws configure export-credentials --profile "$AWS_PROFILE" --format env)"
+uvx awscurl==0.45 --service lambda --region "$AWS_REGION" "${FUNCTION_URL}api/health"
+unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_CREDENTIAL_EXPIRATION
 ```
 
 ## Troubleshooting (seen during the first deployment)
@@ -256,6 +259,8 @@ uvx awscurl==0.45 --profile "$AWS_PROFILE" --service lambda --region "$AWS_REGIO
 | `Not authorized to perform sts:AssumeRoleWithWebIdentity` (deploy job) | The trust policy `sub` does not match GitHub's OIDC subject | Use the immutable format shown in step 2, then `update-assume-role-policy` |
 | `The image manifest, config or layer media type … is not supported` (`create-function`) | The image was pushed as a manifest list with attestations | `deploy.yml` builds with `--provenance=false --sbom=false`; push a new image |
 | `The image tag … already exists … immutable` | A run tried to reuse an existing tag | Tags include the run id (`<sha>-<run id>-<attempt>`); use the current `deploy.yml` |
+| `awscurl: No credentials found` | awscurl does not read `aws login` sessions | Export them first with `aws configure export-credentials` (step 6) |
+| `curl` prints `000` | `FUNCTION_URL` is empty (new terminal) | Repeat the shell setup and the `export FUNCTION_URL=…` line |
 | `ExpiredToken` / expired session | The `aws login` session ended | `aws login --profile deid-admin` |
 | Path like `C:/Program Files/Git/aws/lambda/...` | Git Bash path conversion | `export MSYS_NO_PATHCONV=1` |
 
