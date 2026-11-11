@@ -48,8 +48,11 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
+      # Recent Docker versions attach provenance/SBOM attestations and wrap the image in a manifest
+      # list. Lambda rejects that format ("image manifest ... media type is not supported"), so
+      # build a plain single-platform image.
       - name: Build the container image
-        run: docker build --tag "$IMAGE" .
+        run: docker build --provenance=false --sbom=false --tag "$IMAGE" .
 
       # The Lambda base image includes the RIE: it exposes the same "invoke" API as Lambda on
       # port 8080, so the real handler runs here exactly as it will in AWS.

@@ -102,7 +102,11 @@ aws iam create-open-id-connect-provider \
 ```
 
 The deploy role can only be assumed by a job running in the `production` environment of this
-repository (`infra/iam/github-oidc-trust.json`).
+repository (`infra/iam/github-oidc-trust.json`). The repository uses GitHub's immutable OIDC
+subject format, which includes the numeric owner and repository IDs:
+`repo:agustinroviraquezada@46496399/clinical-deid-es@1424460000:environment:production`.
+A repository re-created later with the same name gets a new ID, so it cannot use the role. Check
+the exact prefix with `gh api repos/<owner>/<repo>/actions/oidc/customization/sub`.
 It can only push to the `clinical-deid` repository and update the `clinical-deid` function
 (`infra/iam/github-deploy-policy.json`).
 
