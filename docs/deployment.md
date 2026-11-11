@@ -67,11 +67,33 @@ You can also add its folder to the PATH:
 ## Prerequisites
 
 - T1.1 done: account active, AWS Budgets alerts at 50 % and 80 % of €50.
-- AWS CLI v2 configured with an administrator identity (not the root user), and `gh` logged in.
+- An administrator IAM user with MFA and **no access keys** (never the root user). `gh` logged in.
 - Run the commands from the repository root in Git Bash (or a Codespace).
 
+### CLI sign-in with `aws login`
+
+`aws login` (AWS CLI ≥ 2.32) signs the CLI in through the browser with the same IAM user and MFA
+as the console. The CLI then gets temporary credentials that last up to 12 hours, with no keys
+stored on disk. The profile name is only a local label, and the command creates it.
+
 ```bash
+aws --version                       # must be 2.32 or newer
+aws login --profile deid-admin      # region: eu-west-1; sign in as the IAM user in the browser
+aws sts get-caller-identity --profile deid-admin   # Arn: arn:aws:iam::<account>:user/<name>
+```
+
+If the CLI offers to configure an AWS MCP server or skills for AI coding agents, answer `never`:
+it would give the agent administrator access to the account. When the session expires, run
+`aws login --profile deid-admin` again.
+
+### Shell setup (every new terminal)
+
+```bash
+export AWS_PROFILE=deid-admin   # every aws command below uses this profile
 export AWS_REGION=eu-west-1
+# Git Bash rewrites arguments that start with "/" into Windows paths, which would turn
+# /aws/lambda/clinical-deid into C:/Program Files/Git/aws/... This turns that off.
+export MSYS_NO_PATHCONV=1
 export ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 echo "$ACCOUNT_ID"   # check it is the project account before going on
 ```
@@ -110,15 +132,19 @@ the exact prefix with `gh api repos/<owner>/<repo>/actions/oidc/customization/su
 It can only push to the `clinical-deid` repository and update the `clinical-deid` function
 (`infra/iam/github-deploy-policy.json`).
 
-```bash
-sed "s/ACCOUNT_ID/$ACCOUNT_ID/g" infra/iam/github-oidc-trust.json > /tmp/trust.json
-sed "s/ACCOUNT_ID/$ACCOUNT_ID/g" infra/iam/github-deploy-policy.json > /tmp/deploy-policy.json
+The policy files contain the placeholder `ACCOUNT_ID`. `sed` replaces it, and the result is
+passed to the CLI directly as a JSON string. Do not use a temporary file: a `/tmp` path from Git
+Bash does not exist for the Windows `aws.exe`.
 
+```bash
 aws iam create-role --role-name clinical-deid-github-deploy \
-  --assume-role-policy-document file:///tmp/trust.json
-aws iam put-role-policy --role-name clinical-deid-github-deploy \
-  --policy-name deploy --policy-document file:///tmp/deploy-policy.json
+  --assume-role-policy-document "$(sed "s/ACCOUNT_ID/$ACCOUNT_ID/g" infra/iam/github-oidc-trust.json)"
+aws iam put-role-policy --role-name clinical-deid-github-deploy --policy-name deploy \
+  --policy-document "$(sed "s/ACCOUNT_ID/$ACCOUNT_ID/g" infra/iam/github-deploy-policy.json)"
 ```
+
+If the role already exists and only the trust policy changes:
+`aws iam update-assume-role-policy --role-name clinical-deid-github-deploy --policy-document "$(sed …)"`.
 
 ### GitHub environment `production`
 
@@ -144,7 +170,7 @@ with `vars.*`.
 gh variable set AWS_DEPLOY_ROLE_ARN --body "arn:aws:iam::$ACCOUNT_ID:role/clinical-deid-github-deploy"
 gh variable set ECR_REPOSITORY --body clinical-deid
 gh workflow run deploy.yml --ref main
-gh run watch
+sleep 5 && gh run watch   # "found no in progress runs": check with gh run list --workflow deploy.yml
 ```
 
 `LAMBDA_FUNCTION_NAME` is not set yet, so the run builds, tests and pushes the image, then skips
@@ -219,8 +245,19 @@ curl -s -o /dev/null -w "%{http_code}\n" "${FUNCTION_URL}api/health"
 
 # Request signed with your AWS credentials (SigV4): must return {"status":"ok",...}.
 # The version is pinned because this tool runs with your AWS credentials.
-uvx awscurl==0.45 --service lambda --region "$AWS_REGION" "${FUNCTION_URL}api/health"
+uvx awscurl==0.45 --profile "$AWS_PROFILE" --service lambda --region "$AWS_REGION" \
+  "${FUNCTION_URL}api/health"
 ```
+
+## Troubleshooting (seen during the first deployment)
+
+| Error | Cause | Fix |
+| --- | --- | --- |
+| `Not authorized to perform sts:AssumeRoleWithWebIdentity` (deploy job) | The trust policy `sub` does not match GitHub's OIDC subject | Use the immutable format shown in step 2, then `update-assume-role-policy` |
+| `The image manifest, config or layer media type … is not supported` (`create-function`) | The image was pushed as a manifest list with attestations | `deploy.yml` builds with `--provenance=false --sbom=false`; push a new image |
+| `The image tag … already exists … immutable` | A run tried to reuse an existing tag | Tags include the run id (`<sha>-<run id>-<attempt>`); use the current `deploy.yml` |
+| `ExpiredToken` / expired session | The `aws login` session ended | `aws login --profile deid-admin` |
+| Path like `C:/Program Files/Git/aws/lambda/...` | Git Bash path conversion | `export MSYS_NO_PATHCONV=1` |
 
 ## Later lifecycle (design §9)
 
