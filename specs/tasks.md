@@ -65,7 +65,7 @@ Checkpoint **31 Oct**: recall ≥ 0.90 and precision ≥ 0.85 on test. If not af
 - Hours: 2
 - Labels: evaluation
 - Spec: AC-02, requirements §7
-- Done when: `evaluate.py` reports recall, precision and F1 (span + type) overall and per category on dev and test; results in `evaluation/report/`.
+- Done when: `evaluate.py` reports recall, precision and F1 (span + type) overall and per category on dev and test; code in `modeling/evaluation/`, results in `src/clinical_deid/api/report/` (ADR-0007).
 
 ### T2.5 · Publish model on the Hub (private)
 - Hours: 0.5

@@ -31,6 +31,7 @@ Final project (TFM) of the Master's in AI-Assisted Development (BIG school). Due
 - `cascade.py` depends only on `domain/` and the protocols in `ports.py`.
 - Hugging Face, Bedrock and FastAPI live in `adapters/` and `api/`.
 - Cascade tests use `adapters/fakes.py`: they **never** call Bedrock or download models.
+- `modeling/` (data prep, training, evaluation) is offline code: it may import `src/`, but `src/` never imports `modeling/` and it is never deployed (ADR-0007).
 
 ## Definition of done for a task
 - New or updated tests pass; `ruff check` is clean.

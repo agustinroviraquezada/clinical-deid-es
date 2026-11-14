@@ -63,7 +63,7 @@ def test_unknown_type_falls_back_to_other_so_it_is_still_masked(unknown_type: st
 def test_all_types_in_local_corpus_have_a_mapping() -> None:
     ann_files = list(CORPUS_DIR.glob("*/brat/*.ann"))
     if not ann_files:
-        pytest.skip("MEDDOCAN corpus not downloaded (run data_prep/download_meddocan.py)")
+        pytest.skip("MEDDOCAN corpus not downloaded (run modeling/data_prep/download_meddocan.py)")
 
     corpus_types: set[str] = set()
     for ann_file in ann_files:

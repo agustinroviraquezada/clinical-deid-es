@@ -5,7 +5,7 @@ it lands in ``data/``, which is git-ignored.
 
 Usage::
 
-    uv run python -m data_prep.download_meddocan --dest data
+    uv run python -m modeling.data_prep.download_meddocan --dest data
 """
 
 from __future__ import annotations

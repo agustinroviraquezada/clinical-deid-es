@@ -9,7 +9,7 @@ Decisions (T2.1):
 
 Usage::
 
-    uv run python -m data_prep.brat_to_bio --corpus data/meddocan --out data/meddocan/bio
+    uv run python -m modeling.data_prep.brat_to_bio --corpus data/meddocan --out data/meddocan/bio
 """
 
 from __future__ import annotations
