@@ -30,7 +30,7 @@ packages = ["src/clinical_deid"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+pythonpath = ["src", "."]
 addopts = "-ra -m 'not integration'"
 markers = [
     "security: tests for security controls (OWASP, privacy)",
