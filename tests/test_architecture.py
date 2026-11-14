@@ -29,6 +29,14 @@ def test_core_module_imports_no_external_framework(path: Path):
     assert _imported_roots(path).isdisjoint(FORBIDDEN)
 
 
+@pytest.mark.parametrize(
+    "path", sorted(PACKAGE.rglob("*.py")), ids=lambda p: str(p.relative_to(PACKAGE))
+)
+def test_product_never_imports_offline_modeling_code(path: Path):
+    """ADR-0007: ``modeling/`` is offline tooling; the deployed package must not depend on it."""
+    assert "modeling" not in _imported_roots(path)
+
+
 def test_core_files_are_present():
     names = {p.name for p in CORE_FILES}
     assert {"entities.py", "categories.py", "masker.py", "ports.py", "cascade.py"} <= names

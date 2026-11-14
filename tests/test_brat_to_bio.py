@@ -5,7 +5,7 @@ from collections import Counter
 
 import pytest
 
-from data_prep.brat_to_bio import (
+from modeling.data_prep.brat_to_bio import (
     Span,
     SplitStats,
     convert_split,

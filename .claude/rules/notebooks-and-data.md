@@ -1,13 +1,13 @@
 ---
 paths:
   - "notebooks/**"
-  - "data_prep/**"
-  - "evaluation/**"
+  - "modeling/**"
 ---
 
 # Rules for notebooks, data and evaluation
 
-- Notebooks are thin: they clone the repo and import functions from `data_prep/`, `evaluation/` and `src/`. Logic does not live in cells.
+- Notebooks are thin: they clone the repo and import functions from `modeling/` and `src/`. Logic does not live in cells.
+- `modeling/` is offline code (ADR-0007): it may import `src/clinical_deid`, never the other way round, and it is never copied into the Lambda image.
 - The MEDDOCAN corpus is downloaded by script (Zenodo, version 1.0, md5 verified). It is never versioned: `data/` is in `.gitignore`.
 - Model weights are never versioned in git; they go to the Hugging Face Hub.
 - Fix seeds (`transformers.set_seed`) and log hyperparameters and metrics for every run (at most 3).

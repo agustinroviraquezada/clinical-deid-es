@@ -38,17 +38,22 @@ src/clinical_deid/
 │   └── static/         # index.html, app.js, styles.css
 ├── config.py           # Validated settings (pydantic-settings) from environment variables
 └── lambda_handler.py   # ASGI → Lambda adapter
-data_prep/ (code, not data)
-├── brat_to_bio.py      # MEDDOCAN BRAT → BIO converter (ADR-0003)
-└── download_meddocan.py
-evaluation/
-├── evaluate.py         # 3 configurations → JSON + Markdown report
-└── report/             # Precomputed results consumed by the Comparison tab
+modeling/                # Offline model lifecycle; never deployed (ADR-0007)
+├── data_prep/          # Code, not data
+│   ├── brat_to_bio.py  # MEDDOCAN BRAT → BIO converter (ADR-0003)
+│   └── download_meddocan.py
+├── training/           # Fine-tuning code called from the Colab notebook
+└── evaluation/
+    └── evaluate.py     # 3 configurations → JSON + Markdown report written to
+                        # src/clinical_deid/api/report/ (consumed by the Comparison tab)
 notebooks/
-└── train_colab.ipynb   # Clones the repo and calls code from src/ and data_prep/
+└── train_colab.ipynb   # Clones the repo and calls code from src/ and modeling/
 ```
 
 **Dependency rule:** `domain` ← `cascade` ← `adapters` / `api`. Never the other way round.
+`modeling/` may import `src/clinical_deid` (e.g. `domain/categories.py`); `src/` never imports
+`modeling/` (enforced by `tests/test_architecture.py`). Training dependencies live in a separate
+`uv` dependency group so they never reach the Lambda image.
 
 ### Ports
 

@@ -5,7 +5,13 @@ import zipfile
 
 import pytest
 
-from data_prep.download_meddocan import ChecksumError, download, md5_of, safe_extract, verify_md5
+from modeling.data_prep.download_meddocan import (
+    ChecksumError,
+    download,
+    md5_of,
+    safe_extract,
+    verify_md5,
+)
 
 
 def _md5(payload: bytes) -> str:
