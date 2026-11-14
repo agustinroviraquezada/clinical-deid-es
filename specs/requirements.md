@@ -32,7 +32,7 @@ health data.
 | FR-01 | Input: pasted text or a `.txt` file, one document per request, at most 10,000 characters. Over the limit → clear error | DECIDED |
 | FR-02 | An in-house NER model (clinical RoBERTa fine-tuned on MEDDOCAN) detects personal data | DECIDED |
 | FR-03 | Output: text with entities replaced by their grouped category (`[NAME]`, `[DATE]`…), ready to copy or download | DECIDED |
-| FR-04 | Grouped categories: 6–8 (NAME, DATE, LOCATION, ID, CONTACT, AGE, PROFESSION, OTHER). Exact mapping set after inspecting the corpus | DECIDED (mapping PENDING) |
+| FR-04 | Grouped categories: 6–8 (NAME, DATE, LOCATION, ID, CONTACT, AGE, PROFESSION, OTHER). MEDDOCAN type → category mapping in `src/clinical_deid/domain/categories.py`; unknown types → OTHER (still masked) | DECIDED |
 | FR-05 | Cascade: entities with confidence < threshold are sent to the LLM, which **confirms or rejects** them and assigns a category. It does not search for new entities | DECIDED |
 | FR-06 | Only the **sentence** containing the uncertain entity is sent to the LLM, never the document | DECIDED |
 | FR-07 | At most N sentences per document go to the LLM; beyond N, the remaining ones are masked by default (conservative) | DECIDED (value of N PENDING, week 3) |
