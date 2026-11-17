@@ -153,6 +153,10 @@ Errors: 400 validation, 401 no session, 413 text > 10,000 characters, 429 limit,
 | `SESSION_SECRET` | random | Yes |
 | `LLM_ENABLED` | `true` | No |
 
+The published model is pinned in the versioned file `config/model.json` (`repo_id`, `revision` =
+full Hub commit SHA), written by `modeling/publish/publish_model.py` (T2.5). It is read at build
+time by `deploy.yml` (T2.6) to download that exact revision; it is not a runtime variable.
+
 ## 11. Stack (DECIDED unless stated)
 
 Python 3.11 · uv · FastAPI · Pydantic · transformers + PyTorch (CPU at inference) · seqeval ·

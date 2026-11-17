@@ -97,6 +97,7 @@ dev = [
 ]
 train = [
     { name = "accelerate" },
+    { name = "huggingface-hub" },
     { name = "seqeval" },
     { name = "transformers" },
 ]
@@ -117,6 +118,7 @@ dev = [
 ]
 train = [
     { name = "accelerate", specifier = ">=1.15.0" },
+    { name = "huggingface-hub", specifier = ">=2.4.0" },
     { name = "seqeval", specifier = ">=1.2.2" },
     { name = "transformers", specifier = ">=5.23.0" },
 ]
