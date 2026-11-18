@@ -87,6 +87,36 @@ def test_surrounding_whitespace_is_trimmed_from_spans():
     assert NOTE[entity.start : entity.end] == "Teruel"
 
 
+def test_punctuation_at_span_edges_is_trimmed():
+    """Word grouping splits on whitespace, so "Fernández," or "Teruel." come back whole."""
+    pipe = FakePipeline(
+        [
+            _span("Lucía Fernández,", "NOMBRE_SUJETO_ASISTENCIA", 0.99),
+            _span("54 años,", "EDAD_SUJETO_ASISTENCIA", 0.99),
+            _span("Teruel.", "TERRITORIO", 0.99),
+        ]
+    )
+
+    entities = HFEntityDetector(pipe).detect(NOTE)
+
+    assert [e.text for e in entities] == ["Lucía Fernández", "54 años", "Teruel"]
+    assert mask(NOTE, entities) == "Paciente [NAME], de [AGE], ingresó el 12/03/2025 en [LOCATION]."
+
+
+def test_punctuation_inside_a_span_is_kept():
+    text = "Contacto: ana.ruiz@correo.es (Dra. Ruiz)."
+    pipe = FakePipeline(
+        [
+            _span("ana.ruiz@correo.es", "CORREO_ELECTRONICO", 0.99, text),
+            _span("(Dra. Ruiz).", "NOMBRE_PERSONAL_SANITARIO", 0.99, text),
+        ]
+    )
+
+    entities = HFEntityDetector(pipe).detect(text)
+
+    assert [e.text for e in entities] == ["ana.ruiz@correo.es", "Dra. Ruiz"]
+
+
 def test_blank_or_empty_spans_are_dropped():
     start = NOTE.index(", de")
     pipe = FakePipeline(

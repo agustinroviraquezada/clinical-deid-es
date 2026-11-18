@@ -23,6 +23,10 @@ TokenClassifier = Callable[[str], Sequence[Mapping[str, Any]]]
 MAX_LENGTH = 512
 STRIDE = 128
 
+# Punctuation stripped from the edges of a span (it is not part of the personal data).
+LEADING_PUNCTUATION = frozenset("([{¿¡\"'«“‘")
+TRAILING_PUNCTUATION = frozenset(",.;:!?)]}\"'»”’")
+
 
 @dataclass(slots=True)
 class _Span:
@@ -78,11 +82,16 @@ class HFEntityDetector:
 
 
 def _trimmed(text: str, raw: Mapping[str, Any]) -> _Span | None:
-    """Span without surrounding whitespace; ``None`` if nothing is left."""
+    """Span without surrounding whitespace or punctuation; ``None`` if nothing is left.
+
+    Word grouping splits on whitespace, so a span can carry attached punctuation such as
+    ``"Fernández,"`` or ``"Teruel."``. Punctuation inside the span (an e-mail, ``"Dra. Ruiz"``)
+    is kept.
+    """
     start, end = int(raw["start"]), int(raw["end"])
-    while start < end and text[start].isspace():
+    while start < end and (text[start].isspace() or text[start] in LEADING_PUNCTUATION):
         start += 1
-    while end > start and text[end - 1].isspace():
+    while end > start and (text[end - 1].isspace() or text[end - 1] in TRAILING_PUNCTUATION):
         end -= 1
     if start >= end:
         return None

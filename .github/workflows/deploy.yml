@@ -140,6 +140,8 @@ jobs:
           test "$(jq -r '.statusCode' response.json)" = "200"
           jq -r '.body' response.json | jq -e '.deidentified_text | contains("[NAME]")'
           jq -r '.body' response.json | jq -e '.deidentified_text | contains("Lucía") | not'
+          # Punctuation next to an entity must survive masking.
+          jq -r '.body' response.json | jq -e '.deidentified_text | contains("[NAME], de")'
 
       - name: Show the emulator logs if the smoke test failed
         if: failure()
