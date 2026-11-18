@@ -159,7 +159,7 @@ time by `deploy.yml` (T2.6) to download that exact revision; it is not a runtime
 
 ## 11. Stack (DECIDED unless stated)
 
-Python 3.11 · uv · FastAPI · Pydantic · transformers + PyTorch (CPU at inference) · seqeval ·
+Python 3.12 (ADR-0008) · uv · FastAPI · Pydantic · transformers + PyTorch (CPU at inference) · seqeval ·
 boto3 · Mangum (ASGI→Lambda adapter) · pytest · ruff · pre-commit · Docker ·
 GitHub Actions · AWS Lambda, ECR, IAM, Bedrock, Budgets · Hugging Face Hub · Colab.
 
