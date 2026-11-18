@@ -47,7 +47,8 @@ class HFEntityDetector:
         tokenizer = AutoTokenizer.from_pretrained(
             model_path, add_prefix_space=True, model_max_length=MAX_LENGTH
         )
-        model = AutoModelForTokenClassification.from_pretrained(model_path)
+        # safetensors only: a pickled weights file (which can run code when loaded) is refused.
+        model = AutoModelForTokenClassification.from_pretrained(model_path, use_safetensors=True)
         classifier = pipeline(
             "token-classification",
             model=model,

@@ -88,6 +88,18 @@ def test_text_over_the_limit_returns_413():
     assert "10000" in response.json()["detail"]
 
 
+@pytest.mark.security
+def test_oversized_text_is_rejected_before_loading_the_model():
+    def model_must_not_load() -> Cascade:
+        raise AssertionError("the model was loaded for an oversized request")
+
+    app.dependency_overrides[get_cascade] = model_must_not_load
+
+    response = client.post("/api/deidentify", json={"text": "a" * 10_001})
+
+    assert response.status_code == 413
+
+
 @pytest.mark.parametrize("payload", [{"text": ""}, {"text": "   "}, {}, {"text": 42}, {"x": "y"}])
 def test_invalid_payload_returns_400_without_echoing_input(payload):
     response = client.post("/api/deidentify", json=payload)

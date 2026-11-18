@@ -53,17 +53,26 @@ def health() -> HealthResponse:
     return HealthResponse(status="ok", version=__version__)
 
 
-@app.post("/api/deidentify", response_model=DeidentifyResponse)
-def deidentify(
-    request: DeidentifyRequest, cascade: Annotated[Cascade, Depends(get_cascade)]
-) -> DeidentifyResponse:
-    """Mask the personal data of one note (FR-01, FR-03). Model only until T3.3."""
+def within_size_limit(request: DeidentifyRequest) -> DeidentifyRequest:
+    """413 over MAX_CHARACTERS (FR-01, LLM10).
+
+    Declared before the cascade dependency, so an oversized request is rejected before the
+    model is loaded and never pays for a cold start.
+    """
     max_characters = get_settings().max_characters
     if len(request.text) > max_characters:
         raise HTTPException(
             status_code=413, detail=f"Text is longer than {max_characters} characters"
         )
+    return request
 
+
+@app.post("/api/deidentify", response_model=DeidentifyResponse)
+def deidentify(
+    request: Annotated[DeidentifyRequest, Depends(within_size_limit)],
+    cascade: Annotated[Cascade, Depends(get_cascade)],
+) -> DeidentifyResponse:
+    """Mask the personal data of one note (FR-01, FR-03). Model only until T3.3."""
     started = time.perf_counter()
     result = cascade.run(request.text)
     latency_ms = round((time.perf_counter() - started) * 1000)

@@ -65,6 +65,11 @@ jobs:
           fi
           repo_id=$(jq -r '.repo_id' config/model.json)
           revision=$(jq -r '.revision' config/model.json)
+          # Only a full commit SHA is immutable; a branch or tag name could point elsewhere later.
+          if ! [[ "$revision" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::config/model.json revision must be a full 40-character commit SHA."
+            exit 1
+          fi
           pipx run --spec 'huggingface-hub==2.4.0' hf download "$repo_id" \
             --revision "$revision" --local-dir model \
             --include config.json model.safetensors tokenizer.json tokenizer_config.json

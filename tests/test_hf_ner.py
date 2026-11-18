@@ -4,6 +4,8 @@ Unit tests inject a fake pipeline: no model is downloaded or loaded.
 """
 
 import os
+import sys
+import types
 from pathlib import Path
 
 import pytest
@@ -139,6 +141,31 @@ def test_empty_text_does_not_call_the_model():
     assert HFEntityDetector(pipe).detect("") == []
     assert HFEntityDetector(pipe).detect("   \n") == []
     assert pipe.calls == []
+
+
+@pytest.mark.security
+def test_model_is_loaded_from_safetensors_only(monkeypatch):
+    """Pickled weights can execute code on load; only safetensors are accepted."""
+    calls: dict[str, dict] = {}
+
+    class FakeAuto:
+        def __init__(self, name: str) -> None:
+            self._name = name
+
+        def from_pretrained(self, path, **kwargs):
+            calls[self._name] = kwargs
+            return object()
+
+    fake = types.ModuleType("transformers")
+    fake.AutoTokenizer = FakeAuto("tokenizer")
+    fake.AutoModelForTokenClassification = FakeAuto("model")
+    fake.pipeline = lambda *args, **kwargs: FakePipeline([])
+    monkeypatch.setitem(sys.modules, "transformers", fake)
+
+    HFEntityDetector.from_pretrained("/srv/model")
+
+    assert calls["model"].get("use_safetensors") is True
+    assert not calls["model"].get("trust_remote_code", False)
 
 
 @pytest.mark.integration
