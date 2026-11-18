@@ -13,10 +13,14 @@ FROM public.ecr.aws/lambda/python:3.12@sha256:a53086fc3118c5457097083ba3d1ccf1d8
 # Turn uv.lock into a requirements file with hashes (runtime dependencies only, no dev tools),
 # then install it with pip into the folder Lambda loads code from. --require-hashes makes pip
 # reject any package whose content differs from the lockfile.
+# CPU-only torch (`2.x+cpu`) is only published on the PyTorch index, which `uv export` does not
+# write into the file, so pip is pointed at it too. The hashes still decide which file is
+# accepted, whichever index serves it.
 COPY --from=uv /uv /usr/local/bin/uv
 COPY pyproject.toml uv.lock ./
 RUN uv export --frozen --no-dev --no-emit-project -o /tmp/requirements.txt \
-    && pip install --no-cache-dir --require-hashes -r /tmp/requirements.txt --target "${LAMBDA_TASK_ROOT}" \
+    && pip install --no-cache-dir --require-hashes -r /tmp/requirements.txt \
+       --extra-index-url https://download.pytorch.org/whl/cpu --target "${LAMBDA_TASK_ROOT}" \
     && rm -f /tmp/requirements.txt /usr/local/bin/uv pyproject.toml uv.lock
 
 # Fine-tuned NER model (design §5). deploy.yml downloads the revision pinned in config/model.json
