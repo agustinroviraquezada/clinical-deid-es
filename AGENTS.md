@@ -49,4 +49,4 @@ Final project (TFM) of the Master's in AI-Assisted Development (BIG school). Due
 
 ## Environment
 - Development on GitHub Codespaces (no GPU). Training on Colab with notebooks that clone the repo.
-- Python 3.11, `uv` package manager.
+- Python 3.12 (ADR-0008), `uv` package manager.

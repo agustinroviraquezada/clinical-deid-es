@@ -10,7 +10,7 @@ only uncertain cases are sent to an LLM, and only the affected sentence.
 Coming soon (see `specs/requirements.md`).
 
 ## Tech stack
-Python 3.11 · FastAPI · Hugging Face Transformers · Amazon Bedrock (Claude Haiku 4.5) ·
+Python 3.12 · FastAPI · Hugging Face Transformers · Amazon Bedrock (Claude Haiku 4.5) ·
 AWS Lambda (container image) · Docker · GitHub Actions · uv · pytest · ruff.
 Details in `specs/design.md`.
 

@@ -5,10 +5,13 @@ description = "Cascade de-identification (NER model + LLM) of Spanish clinical n
 readme = "README.md"
 license = "Apache-2.0"
 authors = [{ name = "Agustín Rovira" }]
-requires-python = ">=3.11,<3.12"
+requires-python = ">=3.12,<3.13"
 dependencies = [
     "fastapi>=0.162.2",
     "mangum>=0.22.0",
+    "pydantic-settings>=2.6",
+    "torch>=2.15.0",
+    "transformers>=5.23.0",
 ]
 # Application dependencies (fastapi, transformers, boto3…) are added from task T1.3 onwards with `uv add`.
 
@@ -45,7 +48,7 @@ markers = [
 
 [tool.ruff]
 line-length = 100
-target-version = "py311"
+target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "S", "SIM"]
@@ -53,3 +56,13 @@ ignore = ["S101"]  # assert in tests
 
 [tool.ruff.lint.per-file-ignores]
 "scripts/*" = ["S603", "S607"]  # subprocess calls to gh
+
+# CPU-only torch: the Lambda image has no GPU, and the default PyPI wheels pull ~4 GB of CUDA
+# libraries. `explicit` means this index is used only for the packages mapped to it below.
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu" }]

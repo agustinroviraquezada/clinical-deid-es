@@ -11,6 +11,7 @@
 .env.*
 data/
 models/
+model/
 notebooks/
 tests/
 docs/
@@ -21,3 +22,10 @@ infra/
 *.bin
 *.pt
 *.onnx
+
+# Exception: the model folder downloaded by deploy.yml goes into the image (design §5). Only the
+# files the app needs; no pickled .bin files.
+!model/config.json
+!model/model.safetensors
+!model/tokenizer.json
+!model/tokenizer_config.json

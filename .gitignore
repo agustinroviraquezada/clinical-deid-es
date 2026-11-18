@@ -17,6 +17,7 @@ dist/
 # Data and models: the corpus is downloaded by script; the model lives on the Hugging Face Hub
 data/
 models/
+model/
 *.safetensors
 *.bin
 *.pt
