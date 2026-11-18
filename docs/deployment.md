@@ -214,7 +214,7 @@ aws lambda wait function-active --function-name clinical-deid
 aws lambda create-function-url-config --function-name clinical-deid --auth-type AWS_IAM
 ```
 
-512 MB is enough for the hello world. With the model, see section 7.4.
+512 MB is enough for the hello world. With the model, see section 7.4 (2,048 MB, 120 s).
 
 **Reserved concurrency (design §8, OWASP LLM10).** This caps how many copies of the function
 run at the same time, and with it the cost of a burst of requests. New accounts often have a
@@ -299,13 +299,15 @@ step 1 (now `"countNumber": 2`). It replaces the existing policy.
 
 ### 7.4 Memory and timeout
 
-Lambda gives CPU in proportion to memory, so more memory means faster inference. Start with the
-3,008 MB proposed in design §9. The model loads on the first request after a cold start
-(`get_cascade()` in `app.py`), which can take tens of seconds, so raise the timeout to 60 s:
+Lambda gives CPU in proportion to memory, so more memory means faster inference. The model loads
+on the first request after a cold start (`get_cascade()` in `app.py`). The first request after a
+**new image is deployed** is much slower than later cold starts. Lambda fetches the image from
+ECR lazily, chunk by chunk, and loading torch plus the ~500 MB model reads many chunks. In the
+measurement below that request took more than 60 s. The timeout is therefore 120 s; you only pay
+for the time actually used.
 
 ```bash
-aws lambda update-function-configuration --function-name clinical-deid \
-  --memory-size 3008 --timeout 60 --query '[MemorySize,Timeout]'
+aws lambda update-function-configuration --function-name clinical-deid   --memory-size 2048 --timeout 120 --query '[MemorySize,Timeout]'
 aws lambda wait function-updated --function-name clinical-deid
 ```
 
@@ -313,45 +315,49 @@ New accounts may be limited to 3,008 MB; an error mentioning `MemorySize` means 
 
 ### 7.5 Measure cold and warm latency (AC-03)
 
-A configuration change makes Lambda start new instances, so the next request is a cold start.
+Any configuration change makes Lambda start new instances, so the next request is a cold start.
 Each run below sends one cold request and five warm ones, then reads Lambda's own `REPORT` lines.
 Because the model loads lazily, the cold cost shows up in the first request's `Duration`;
 `Init Duration` only covers importing the code.
 
 ```bash
-export FUNCTION_URL=$(aws lambda get-function-url-config --function-name clinical-deid \
-  --query FunctionUrl --output text)
+export FUNCTION_URL=$(aws lambda get-function-url-config --function-name clinical-deid   --query FunctionUrl --output text)
 eval "$(aws configure export-credentials --profile "$AWS_PROFILE" --format env)"
 
 # Force a cold start without changing the code.
-aws lambda update-function-configuration --function-name clinical-deid \
-  --description "latency run $(date +%s)" --query LastUpdateStatus
+aws lambda update-function-configuration --function-name clinical-deid   --description "latency run $(date +%s)" --query LastUpdateStatus
 aws lambda wait function-updated --function-name clinical-deid
 
 for i in 1 2 3 4 5 6; do
-  /usr/bin/time -f "request $i: %e s" uvx awscurl==0.45 --service lambda --region "$AWS_REGION" \
-    -X POST -H 'Content-Type: application/json' \
-    -d '{"text": "Paciente Lucía Fernández, de 54 años, ingresó el 12/03/2025 en Teruel."}' \
-    "${FUNCTION_URL}api/deidentify" > /dev/null
+  time uvx awscurl==0.45 --service lambda --region "$AWS_REGION"     -X POST -H 'Content-Type: application/json'     -d '{"text": "Paciente Lucía Fernández, de 54 años, ingresó el 12/03/2025 en Teruel."}'     "${FUNCTION_URL}api/deidentify" > /dev/null
 done
 unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_CREDENTIAL_EXPIRATION
 
 # Lambda's measurements: Duration, Billed Duration, Max Memory Used, Init Duration (cold only).
-aws logs filter-log-events --log-group-name /aws/lambda/clinical-deid \
-  --filter-pattern REPORT --start-time $(( ($(date +%s) - 600) * 1000 )) \
-  --query 'events[].message' --output text
+# Wait a few seconds after the last request: logs reach CloudWatch with a short delay.
+aws logs filter-log-events --log-group-name /aws/lambda/clinical-deid   --filter-pattern REPORT --start-time $(( ($(date +%s) - 900) * 1000 ))   --query 'events[].message' --output text
 ```
 
-If `/usr/bin/time` is missing in Git Bash, use the shell keyword `time` instead. Repeat with
-2,048 MB and keep the smallest memory whose warm latency stays well under 10 s (cost is memory ×
-duration). `Max Memory Used` must stay clearly below the configured memory.
+`time` reports the whole client round trip (`real`): `uvx` start-up, SigV4 signing and the
+network from Spain, about 1 s. `Duration` is the time spent inside Lambda.
 
-| Memory | Cold request (s) | Warm request (s, median of 5) | Max memory used (MB) |
+**Results (18 Nov 2026, synthetic 70-character note, `eu-west-1`):**
+
+| Memory | Cold request: Lambda / client | Warm request: Lambda / client (median of 5) | Max memory used |
 | --- | --- | --- | --- |
-| 3,008 MB | _to measure_ | _to measure_ | _to measure_ |
-| 2,048 MB | _to measure_ | _to measure_ | _to measure_ |
+| 3,008 MB | 7.0 s / 8.5 s | 87 ms / 1.1 s | 935 MB |
+| 2,048 MB | 9.1 s (7.9 s + 1.2 s init) / 10.7 s | 122 ms / 1.2 s | 936 MB |
 
-Chosen memory: _to decide after measuring_.
+The very first request after the T2.6 deployment (3,008 MB, 60 s timeout) hit the timeout at
+60 s: that is the lazy image fetch described in 7.4, and it does not happen again until the next
+deployment.
+
+**Chosen memory: 2,048 MB, timeout 120 s.** Both sizes meet AC-03 (< 10 s excluding cold
+starts) by a wide margin. Cost is practically the same, because Lambda bills memory × duration:
+about 0.25 GB·s per warm request at 2,048 MB versus 0.26 GB·s at 3,008 MB. 2,048 MB is the smaller
+reservation that still leaves more than 1 GB of headroom over the ~935 MB used. It is about
+35 ms slower warm, which is invisible next to the ~1 s client round trip, and about 2 s slower
+on a cold start. Design §9 proposed 3,008 MB "to tune after measuring": this is that tuning.
 
 ## Troubleshooting (seen during the first deployment)
 
