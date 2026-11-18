@@ -70,10 +70,14 @@ jobs:
             echo "::error::config/model.json revision must be a full 40-character commit SHA."
             exit 1
           fi
-          pipx run --spec 'huggingface-hub==2.4.0' hf download "$repo_id" \
-            --revision "$revision" --local-dir model \
-            --include config.json model.safetensors tokenizer.json tokenizer_config.json
+          # Files are listed by name (not --include, which takes a single pattern).
+          files="config.json model.safetensors tokenizer.json tokenizer_config.json"
+          pipx run --spec 'huggingface-hub==2.4.0' hf download "$repo_id" $files \
+            --revision "$revision" --local-dir model
           ls -la model
+          for f in $files; do
+            test -s "model/$f" || { echo "::error::model/$f was not downloaded."; exit 1; }
+          done
 
       # Recent Docker versions attach provenance/SBOM attestations and wrap the image in a manifest
       # list. Lambda rejects that format ("image manifest ... media type is not supported"), so

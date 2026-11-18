@@ -278,8 +278,8 @@ login` (or an `HF_TOKEN` variable) must be set up first:
 
 ```bash
 uvx --from huggingface-hub==2.4.0 hf download "$(jq -r .repo_id config/model.json)" \
-  --revision "$(jq -r .revision config/model.json)" --local-dir model \
-  --include config.json model.safetensors tokenizer.json tokenizer_config.json
+  config.json model.safetensors tokenizer.json tokenizer_config.json \
+  --revision "$(jq -r .revision config/model.json)" --local-dir model
 
 docker build --provenance=false --sbom=false --tag clinical-deid:local .
 docker run --detach --rm --name lambda-local --publish 9000:8080 clinical-deid:local
