@@ -134,7 +134,7 @@ Errors: 400 validation, 401 no session, 413 text > 10,000 characters, 429 limit,
   1. `ci.yml` (every push/PR): ruff + pytest with test doubles (no network, no cost).
   2. `deploy.yml` (push to `main` or manual): **OIDC** authentication with an IAM role → download the model from the Hub (pinned revision, `HF_TOKEN` in GitHub secrets) → `docker build` → push to ECR → `aws lambda update-function-code`.
   - Fallback if OIDC causes problems: access keys in GitHub secrets.
-- **Lambda memory:** PROPOSED 3,008 MB (tune after measuring); check the new account's quota.
+- **Lambda memory:** DECIDED 2,048 MB, timeout 120 s (measured in T2.6, `docs/deployment.md` §7.5).
 - **Cost:** AWS Budgets with alerts at 50 % and 80 % of €50.
 - **Lifecycle:** access closed during development; opened on 20 Nov; function, image and role deleted after the grade.
 
