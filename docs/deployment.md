@@ -106,10 +106,11 @@ aws ecr create-repository --repository-name clinical-deid \
   --image-scanning-configuration scanOnPush=true \
   --image-tag-mutability IMMUTABLE
 
-# Keep only the 5 most recent images so storage stays almost free.
+# Keep only the 2 most recent images (the current one and one to roll back to). With the model
+# inside, each image is ~2.5 GB and ECR storage is billed per GB-month.
 aws ecr put-lifecycle-policy --repository-name clinical-deid --lifecycle-policy-text '{
-  "rules": [{"rulePriority": 1, "description": "keep last 5 images",
-             "selection": {"tagStatus": "any", "countType": "imageCountMoreThan", "countNumber": 5},
+  "rules": [{"rulePriority": 1, "description": "keep last 2 images",
+             "selection": {"tagStatus": "any", "countType": "imageCountMoreThan", "countNumber": 2},
              "action": {"type": "expire"}}]}'
 ```
 
@@ -213,7 +214,7 @@ aws lambda wait function-active --function-name clinical-deid
 aws lambda create-function-url-config --function-name clinical-deid --auth-type AWS_IAM
 ```
 
-512 MB is enough for the hello world. Design §9 proposes 3,008 MB once the model is in the image.
+512 MB is enough for the hello world. With the model, see section 7.4.
 
 **Reserved concurrency (design §8, OWASP LLM10).** This caps how many copies of the function
 run at the same time, and with it the cost of a burst of requests. New accounts often have a
@@ -251,6 +252,106 @@ eval "$(aws configure export-credentials --profile "$AWS_PROFILE" --format env)"
 uvx awscurl==0.45 --service lambda --region "$AWS_REGION" "${FUNCTION_URL}api/health"
 unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_CREDENTIAL_EXPIRATION
 ```
+
+## 7. Model in the image (T2.6)
+
+From T2.6 the image contains the fine-tuned model, and the API exposes `POST /api/deidentify`.
+The image grows from ~200 MB to ~2.5 GB (CPU-only torch, transformers and the ~500 MB model).
+
+### 7.1 Read-only Hugging Face token for GitHub Actions
+
+The model repository is private, so `deploy.yml` needs a token to download it. Create a
+**fine-grained** token on huggingface.co (Settings → Access Tokens) with only *Read access to
+contents* of `ahrovira/clinical-deid-es-meddocan`, then store it as a repository secret. `gh`
+asks for the value and does not echo it, so it never ends up in your shell history:
+
+```bash
+gh secret set HF_TOKEN
+```
+
+Without this secret the `build-test` job fails at "Download the pinned model".
+
+### 7.2 Build and test the image locally
+
+The Dockerfile copies `./model` (git-ignored). Download the pinned revision into it; `hf auth
+login` (or an `HF_TOKEN` variable) must be set up first:
+
+```bash
+uvx --from huggingface-hub==2.4.0 hf download "$(jq -r .repo_id config/model.json)" \
+  --revision "$(jq -r .revision config/model.json)" --local-dir model \
+  --include config.json model.safetensors tokenizer.json tokenizer_config.json
+
+docker build --provenance=false --sbom=false --tag clinical-deid:local .
+docker run --detach --rm --name lambda-local --publish 9000:8080 clinical-deid:local
+```
+
+Then send the same event as the `deploy.yml` smoke test (`POST /api/deidentify` with a synthetic
+note). The first call loads the model, so it is slow; the next ones show the warm latency.
+
+The API also runs without Docker: `MODEL_PATH=model uv run uvicorn clinical_deid.api.app:app
+--port 8000`, then `curl -s localhost:8000/api/deidentify -H 'Content-Type: application/json'
+-d '{"text": "Paciente Lucía Fernández, ingresó el 12/03/2025."}'`.
+
+### 7.3 Keep fewer images in ECR
+
+Images are now ~2.5 GB each, so keep 2 instead of 5: re-run the `put-lifecycle-policy` command of
+step 1 (now `"countNumber": 2`). It replaces the existing policy.
+
+### 7.4 Memory and timeout
+
+Lambda gives CPU in proportion to memory, so more memory means faster inference. Start with the
+3,008 MB proposed in design §9. The model loads on the first request after a cold start
+(`get_cascade()` in `app.py`), which can take tens of seconds, so raise the timeout to 60 s:
+
+```bash
+aws lambda update-function-configuration --function-name clinical-deid \
+  --memory-size 3008 --timeout 60 --query '[MemorySize,Timeout]'
+aws lambda wait function-updated --function-name clinical-deid
+```
+
+New accounts may be limited to 3,008 MB; an error mentioning `MemorySize` means that quota.
+
+### 7.5 Measure cold and warm latency (AC-03)
+
+A configuration change makes Lambda start new instances, so the next request is a cold start.
+Each run below sends one cold request and five warm ones, then reads Lambda's own `REPORT` lines.
+Because the model loads lazily, the cold cost shows up in the first request's `Duration`;
+`Init Duration` only covers importing the code.
+
+```bash
+export FUNCTION_URL=$(aws lambda get-function-url-config --function-name clinical-deid \
+  --query FunctionUrl --output text)
+eval "$(aws configure export-credentials --profile "$AWS_PROFILE" --format env)"
+
+# Force a cold start without changing the code.
+aws lambda update-function-configuration --function-name clinical-deid \
+  --description "latency run $(date +%s)" --query LastUpdateStatus
+aws lambda wait function-updated --function-name clinical-deid
+
+for i in 1 2 3 4 5 6; do
+  /usr/bin/time -f "request $i: %e s" uvx awscurl==0.45 --service lambda --region "$AWS_REGION" \
+    -X POST -H 'Content-Type: application/json' \
+    -d '{"text": "Paciente Lucía Fernández, de 54 años, ingresó el 12/03/2025 en Teruel."}' \
+    "${FUNCTION_URL}api/deidentify" > /dev/null
+done
+unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_CREDENTIAL_EXPIRATION
+
+# Lambda's measurements: Duration, Billed Duration, Max Memory Used, Init Duration (cold only).
+aws logs filter-log-events --log-group-name /aws/lambda/clinical-deid \
+  --filter-pattern REPORT --start-time $(( ($(date +%s) - 600) * 1000 )) \
+  --query 'events[].message' --output text
+```
+
+If `/usr/bin/time` is missing in Git Bash, use the shell keyword `time` instead. Repeat with
+2,048 MB and keep the smallest memory whose warm latency stays well under 10 s (cost is memory ×
+duration). `Max Memory Used` must stay clearly below the configured memory.
+
+| Memory | Cold request (s) | Warm request (s, median of 5) | Max memory used (MB) |
+| --- | --- | --- | --- |
+| 3,008 MB | _to measure_ | _to measure_ | _to measure_ |
+| 2,048 MB | _to measure_ | _to measure_ | _to measure_ |
+
+Chosen memory: _to decide after measuring_.
 
 ## Troubleshooting (seen during the first deployment)
 

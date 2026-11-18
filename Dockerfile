@@ -18,6 +18,18 @@ RUN uv export --frozen --no-dev --no-emit-project -o /tmp/requirements.txt \
     && pip install --no-cache-dir --require-hashes -r /tmp/requirements.txt --target "${LAMBDA_TASK_ROOT}" \
     && rm -f /tmp/requirements.txt /usr/local/bin/uv pyproject.toml uv.lock
 
+# Fine-tuned NER model (design §5). deploy.yml downloads the revision pinned in config/model.json
+# into ./model before building; for a local build, see docs/deployment.md. The model goes in its
+# own layer, before the code, so a code-only change reuses the cached ~500 MB layer.
+COPY model/ /opt/model/
+
+# MODEL_PATH tells the app where the model is (config.py). The HF_* variables keep transformers
+# from ever reaching the Hub at runtime and point its cache at /tmp, the only writable folder
+# in Lambda.
+ENV MODEL_PATH=/opt/model \
+    HF_HUB_OFFLINE=1 \
+    HF_HOME=/tmp/hf
+
 # Application code only (tests, notebooks, data and secrets are excluded by .dockerignore).
 COPY src/clinical_deid "${LAMBDA_TASK_ROOT}/clinical_deid"
 

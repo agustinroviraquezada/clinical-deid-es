@@ -23,6 +23,7 @@ on:
       - .github/workflows/deploy.yml
       - pyproject.toml
       - uv.lock
+      - config/model.json
       - src/**
 
 # Default for every job: read the repository and nothing else. Only `deploy` asks for more.
@@ -47,6 +48,27 @@ jobs:
     steps:
       - name: Check out the repository
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      # The model lives in a private Hugging Face repository. Download the exact revision pinned in
+      # config/model.json (commit SHA, so the files cannot change under us) into ./model, which the
+      # Dockerfile copies into the image. HF_TOKEN is a read-only token stored as a GitHub secret:
+      # the `hf` CLI reads it from the environment and never prints it, and it is not passed to
+      # `docker build`, so it never reaches the image. Only the files the app loads are fetched
+      # (no pickled .bin files). The CLI version is pinned like any other dependency.
+      - name: Download the pinned model from the Hugging Face Hub
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          if [ -z "$HF_TOKEN" ]; then
+            echo "::error::The HF_TOKEN secret is not available (docs/deployment.md, section 7)."
+            exit 1
+          fi
+          repo_id=$(jq -r '.repo_id' config/model.json)
+          revision=$(jq -r '.revision' config/model.json)
+          pipx run --spec 'huggingface-hub==2.4.0' hf download "$repo_id" \
+            --revision "$revision" --local-dir model \
+            --include config.json model.safetensors tokenizer.json tokenizer_config.json
+          ls -la model
 
       # Recent Docker versions attach provenance/SBOM attestations and wrap the image in a manifest
       # list. Lambda rejects that format ("image manifest ... media type is not supported"), so
@@ -85,6 +107,30 @@ jobs:
           cat response.json; echo
           test "$(jq -r '.statusCode' response.json)" = "200"
           jq -r '.body' response.json | jq -e '.status == "ok"'
+
+      # Same emulator, now through the real model: a synthetic note (invented, no real data) must
+      # come back with the patient name masked. The first call loads the model (cold start), so
+      # it gets a generous timeout.
+      - name: Smoke test /api/deidentify with the real model
+        run: |
+          note='Paciente Lucía Fernández, de 54 años, ingresó el 12/03/2025 en Teruel.'
+          jq -n --arg body "$(jq -cn --arg text "$note" '{text: $text}')" '{
+            version: "2.0", routeKey: "$default", rawPath: "/api/deidentify", rawQueryString: "",
+            headers: {host: "localhost", "content-type": "application/json"},
+            requestContext: {
+              http: {method: "POST", path: "/api/deidentify", protocol: "HTTP/1.1",
+                     sourceIp: "127.0.0.1", userAgent: "smoke-test"},
+              requestId: "smoke-test-deidentify", routeKey: "$default", stage: "$default"
+            },
+            body: $body, isBase64Encoded: false
+          }' > deidentify.json
+          curl --silent --fail --max-time 120 --output response.json \
+            --data @deidentify.json \
+            http://localhost:9000/2015-03-31/functions/function/invocations
+          jq -r '.body' response.json | jq '{deidentified_text, metrics}'
+          test "$(jq -r '.statusCode' response.json)" = "200"
+          jq -r '.body' response.json | jq -e '.deidentified_text | contains("[NAME]")'
+          jq -r '.body' response.json | jq -e '.deidentified_text | contains("Lucía") | not'
 
       - name: Show the emulator logs if the smoke test failed
         if: failure()
