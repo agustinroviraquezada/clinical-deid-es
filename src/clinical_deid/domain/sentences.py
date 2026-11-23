@@ -7,7 +7,9 @@ the conservative side for FR-06 (less text leaves the system).
 
 import re
 
-_BOUNDARY = re.compile(r"(?<=[.!?])\s+|\s*\n\s*")
+# Linear on purpose: no alternative starts with an unbounded \s*, which is quadratic on long
+# whitespace runs. Trailing whitespace before a line break is trimmed in sentence_bounds.
+_BOUNDARY = re.compile(r"(?<=[.!?])\s+|\n\s*")
 
 
 def sentence_bounds(text: str, start: int, end: int) -> tuple[int, int]:
@@ -23,4 +25,7 @@ def sentence_bounds(text: str, start: int, end: int) -> tuple[int, int]:
     for match in _BOUNDARY.finditer(text, 0, start):
         begin = match.end()
     after = _BOUNDARY.search(text, end)
-    return begin, after.start() if after else len(text)
+    stop = after.start() if after else len(text)
+    while stop > end and text[stop - 1].isspace():
+        stop -= 1
+    return begin, stop

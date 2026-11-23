@@ -1,3 +1,5 @@
+import time
+
 import pytest
 
 from clinical_deid.domain.sentences import sentence_bounds
@@ -44,3 +46,22 @@ def test_text_without_terminator_is_one_sentence():
 def test_invalid_span_raises(start: int, end: int):
     with pytest.raises(ValueError):
         sentence_bounds(TEXT, start, end)
+
+
+@pytest.mark.security
+@pytest.mark.parametrize("filler", [" ", " \n", "\t\n "], ids=["spaces", "space-newline", "mixed"])
+def test_long_whitespace_runs_are_segmented_in_linear_time(filler: str):
+    text = "Ana" + filler * (9_990 // len(filler)) + "Eva"
+
+    started = time.perf_counter()
+    for start, end in [(0, 3), (len(text) - 3, len(text))]:
+        sentence_bounds(text, start, end)
+    elapsed = time.perf_counter() - started
+
+    assert elapsed < 0.05
+
+
+def test_trailing_whitespace_before_a_line_break_is_not_part_of_the_sentence():
+    text = "Vive en Teruel   \nAlergias: ninguna"
+
+    assert _sentence_of("Teruel", text) == "Vive en Teruel"

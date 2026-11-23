@@ -1,21 +1,25 @@
 """Cascade use case: detect -> filter uncertain -> verify -> mask (design §3, ADR-0004).
 
 Confident entities are accepted. Uncertain ones are verified by the LLM, sending only their
-sentence (FR-06), at most ``max_llm_calls`` times per document (FR-07) and, optionally, within
-a total time budget (LLM10). Anything not verified — beyond the cap, past the budget or after
-any verifier failure — is masked (fail-safe). Nothing here logs text, sentences or verdicts.
+sentence (FR-06, at most ``MAX_LLM_SENTENCE_CHARS``), at most ``max_llm_calls`` times per
+document (FR-07) and, optionally, within a total time budget (LLM10). Anything not verified —
+beyond the cap, past the budget, an oversized sentence or any failure (segmentation, verifier
+error, malformed verdict) — is masked (fail-safe). Nothing here logs text, sentences or verdicts.
 """
 
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, replace
 
-from clinical_deid.domain.entities import Entity
+from clinical_deid.domain.categories import Category
+from clinical_deid.domain.entities import Entity, Verdict
 from clinical_deid.domain.masker import mask
 from clinical_deid.domain.sentences import sentence_bounds
 from clinical_deid.ports import EntityDetector, LLMVerifier
 
 DEFAULT_MAX_LLM_CALLS = 8  # ADR-0009
+# FR-06 guard: a longer "sentence" means segmentation failed and would leak the document.
+MAX_LLM_SENTENCE_CHARS = 1_000
 
 
 @dataclass(frozen=True, slots=True)
@@ -72,10 +76,19 @@ class Cascade:
             if n_llm >= self._max_llm_calls or self._budget_exhausted(started):
                 accepted.append(entity)  # FR-07: beyond the cap, masked by default.
                 continue
-            n_llm += 1
-            begin, end = sentence_bounds(text, entity.start, entity.end)
             try:
+                begin, end = sentence_bounds(text, entity.start, entity.end)
+                if end - begin > MAX_LLM_SENTENCE_CHARS:
+                    accepted.append(entity)  # FR-06: never send an oversized fragment.
+                    continue
+                n_llm += 1
                 verdict = self._verifier.verify(text[begin:end], entity)
+                if not (
+                    isinstance(verdict, Verdict)
+                    and isinstance(verdict.is_personal_data, bool)
+                    and isinstance(verdict.category, Category)
+                ):
+                    raise TypeError("Malformed verdict")
             except Exception:  # noqa: BLE001 — fail-safe: any failure masks the entity.
                 accepted.append(entity)
                 continue
