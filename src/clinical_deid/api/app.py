@@ -44,7 +44,10 @@ def get_cascade() -> Cascade:
 
     settings = get_settings()
     detector = HFEntityDetector.from_pretrained(settings.model_path)
-    return Cascade(detector, DisabledVerifier(), threshold=settings.confidence_threshold)
+    # The LLM is off until T3.5: a zero cap masks every uncertain entity without calling it.
+    return Cascade(
+        detector, DisabledVerifier(), threshold=settings.confidence_threshold, max_llm_calls=0
+    )
 
 
 @app.get("/api/health", response_model=HealthResponse)
@@ -72,7 +75,7 @@ def deidentify(
     request: Annotated[DeidentifyRequest, Depends(within_size_limit)],
     cascade: Annotated[Cascade, Depends(get_cascade)],
 ) -> DeidentifyResponse:
-    """Mask the personal data of one note (FR-01, FR-03). Model only until T3.3."""
+    """Mask the personal data of one note (FR-01, FR-03)."""
     started = time.perf_counter()
     result = cascade.run(request.text)
     latency_ms = round((time.perf_counter() - started) * 1000)
@@ -88,7 +91,12 @@ def deidentify(
     return DeidentifyResponse(
         deidentified_text=result.deidentified_text,
         entities=[
-            EntityOut(start=e.start, end=e.end, category=e.category, source="model")
+            EntityOut(
+                start=e.start,
+                end=e.end,
+                category=e.category,
+                source="llm" if (e.start, e.end) in result.llm_verified else "model",
+            )
             for e in result.entities
         ],
         metrics=Metrics(latency_ms=latency_ms, n_entities=len(result.entities), n_llm=result.n_llm),

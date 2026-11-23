@@ -5,11 +5,11 @@ from fastapi.testclient import TestClient
 
 import clinical_deid
 from clinical_deid.adapters.disabled_llm import DisabledVerifier
-from clinical_deid.adapters.fakes import FakeDetector
+from clinical_deid.adapters.fakes import FakeDetector, FakeVerifier
 from clinical_deid.api.app import app, get_cascade
 from clinical_deid.cascade import Cascade
 from clinical_deid.domain.categories import Category
-from clinical_deid.domain.entities import Entity
+from clinical_deid.domain.entities import Entity, Verdict
 
 NOTE = "Paciente Lucía Fernández, de 54 años, ingresó el 12/03/2025 en Teruel."
 
@@ -32,7 +32,7 @@ def entities() -> list[Entity]:
 @pytest.fixture(autouse=True)
 def fake_cascade(entities):
     """Replace the real model with a test double for every test in this module."""
-    cascade = Cascade(FakeDetector(entities), DisabledVerifier(), threshold=0.85)
+    cascade = Cascade(FakeDetector(entities), DisabledVerifier(), threshold=0.85, max_llm_calls=0)
     app.dependency_overrides[get_cascade] = lambda: cascade
     yield
     app.dependency_overrides.clear()
@@ -61,6 +61,17 @@ def test_deidentify_masks_entities_and_reports_metrics():
     assert body["metrics"]["n_entities"] == 2
     assert body["metrics"]["n_llm"] == 0
     assert body["metrics"]["latency_ms"] >= 0
+
+
+def test_entity_confirmed_by_llm_is_reported_with_llm_source(entities):
+    verifier = FakeVerifier(Verdict(is_personal_data=True, category=Category.DATE))
+    cascade = Cascade(FakeDetector(entities), verifier, threshold=0.85)
+    app.dependency_overrides[get_cascade] = lambda: cascade
+
+    body = client.post("/api/deidentify", json={"text": NOTE}).json()
+
+    assert [e["source"] for e in body["entities"]] == ["model", "llm"]
+    assert body["metrics"]["n_llm"] == 1
 
 
 def test_response_never_echoes_entity_text(entities):
