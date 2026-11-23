@@ -10,7 +10,7 @@ Instructions for any coding agent (Claude Code, Copilot, CodeRabbit…).
 ## Project
 A web tool that de-identifies a Spanish clinical note: an in-house NER model (RoBERTa fine-tuned on
 MEDDOCAN) + an LLM on Amazon Bedrock only for uncertain entities. Deployed on AWS Lambda.
-Final project (TFM) of the Master's in AI-Assisted Development (BIG school). Due **23 Nov 2026**.
+Final project (TFM) of the Master's in AI-Assisted Development (BIG school). Due **29 Nov 2026** (moved from 23 Nov, ADR-0010); submission planned for **28 Nov**.
 
 ## Spec Driven Development — mandatory
 1. Before implementing, read `specs/requirements.md` → `specs/design.md` → `specs/tasks.md`.

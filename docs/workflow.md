@@ -33,7 +33,7 @@ Where everything lives and how a work session runs.
 | 31 Oct | Recall ≥ 0.90 and precision ≥ 0.85 | Plan B: accept and document |
 | 6 Nov | Cascade deployed and evaluated, and ≤ 36 h | The JSON extension becomes future work |
 | 13 Nov | Feature freeze | Bug fixes only |
-| 20 Nov | Public access open and tested | — |
-| 21 Nov | Submission | — |
+| 27 Nov | Public access open and tested | — |
+| 28 Nov | Submission (deadline 29 Nov, ADR-0010) | — |
 
 `uv run python scripts/hours.py status` shows where you stand.

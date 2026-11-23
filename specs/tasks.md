@@ -147,9 +147,9 @@ Checkpoint **13 Nov**: feature freeze. From here on, bug fixes only.
 - Spec: NFR-06
 - Done when: `/security-review` run and findings fixed or documented; slide draft with structure and diagrams.
 
-## Week 5 · Submission (14 Nov–20 Nov) · 9 h
+## Week 5 · Submission (14 Nov–28 Nov) · 9 h
 
-Milestone **20 Nov**: public access open and tested from a phone. **21 Nov**: submission.
+Milestone **27 Nov**: public access open and tested from a phone. **28 Nov**: submission (deadline 29 Nov, ADR-0010).
 
 ### T5.1 · Final README and model card
 - Hours: 2
@@ -173,7 +173,7 @@ Milestone **20 Nov**: public access open and tested from a phone. **21 Nov**: su
 - Hours: 1.5
 - Labels: infra, submission
 - Spec: AC-06
-- Done when: Function URL set to `NONE` on 20 Nov, tested from another device, submission checklist reviewed, form submitted on 21 Nov.
+- Done when: Function URL set to `NONE` on 27 Nov, tested from another device, submission checklist reviewed, form submitted on 28 Nov.
 
 ## After the grade
 
