@@ -18,7 +18,7 @@ LOG_FILE = Path(__file__).resolve().parent.parent / "docs" / "hours-log.csv"
 FIELDS = ["date", "hours", "task", "summary"]
 
 START = date(2026, 10, 17)
-SUBMISSION = date(2026, 11, 21)
+SUBMISSION = date(2026, 11, 28)  # deadline 29 Nov (ADR-0010)
 # Planned cumulative hours at the end of each week (specs/tasks.md).
 PLANNED_CUMULATIVE = {1: 10, 2: 22, 3: 34, 4: 46, 5: 55}
 EXTENSION_RULE_H = 36  # 6 Nov checkpoint

@@ -136,7 +136,7 @@ Errors: 400 validation, 401 no session, 413 text > 10,000 characters, 429 limit,
   - Fallback if OIDC causes problems: access keys in GitHub secrets.
 - **Lambda memory:** DECIDED 2,048 MB, timeout 120 s (measured in T2.6, `docs/deployment.md` §7.5).
 - **Cost:** AWS Budgets with alerts at 50 % and 80 % of €50.
-- **Lifecycle:** access closed during development; opened on 20 Nov; function, image and role deleted after the grade.
+- **Lifecycle:** access closed during development; opened on 27 Nov (ADR-0010); function, image and role deleted after the grade.
 
 ## 10. Configuration (environment variables)
 

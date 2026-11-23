@@ -373,7 +373,7 @@ on a cold start. Design §9 proposed 3,008 MB "to tune after measuring": this is
 
 ## Later lifecycle (design §9)
 
-- **20 Nov:** switch the URL to `--auth-type NONE` (`aws lambda update-function-url-config`)
+- **27 Nov:** switch the URL to `--auth-type NONE` (`aws lambda update-function-url-config`)
   together with the app login (ADR-0006).
 - **After the grade:** delete the function, the image repository, the log group, both roles,
   the OIDC provider and the GitHub environment.
