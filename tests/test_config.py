@@ -19,6 +19,16 @@ def test_defaults_match_design(monkeypatch):
     assert settings.max_llm_sentences == 8
 
 
+def test_bedrock_defaults_match_design(monkeypatch):
+    for name in ("BEDROCK_MODEL_ID", "AWS_REGION"):
+        monkeypatch.delenv(name, raising=False)
+
+    settings = Settings()
+
+    assert settings.bedrock_model_id == "eu.anthropic.claude-haiku-4-5-20251001-v1:0"
+    assert settings.aws_region == "eu-west-1"
+
+
 def test_environment_variables_override_defaults(monkeypatch):
     monkeypatch.setenv("MODEL_PATH", "/srv/model")
     monkeypatch.setenv("MAX_CHARACTERS", "500")

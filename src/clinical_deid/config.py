@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     # Both chosen on MEDDOCAN dev in T3.1 (ADR-0009, report api/report/threshold_dev.md).
     confidence_threshold: float = Field(default=0.96, ge=0.0, le=1.0)
     max_llm_sentences: int = Field(default=8, ge=0)
+    # LLM on Amazon Bedrock (design §4). Credentials come from the IAM role, never from here.
+    bedrock_model_id: str = "eu.anthropic.claude-haiku-4-5-20251001-v1:0"
+    aws_region: str = "eu-west-1"
 
 
 @lru_cache(maxsize=1)
