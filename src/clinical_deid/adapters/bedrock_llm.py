@@ -16,6 +16,8 @@ from clinical_deid.domain.categories import Category
 from clinical_deid.domain.entities import Entity, Verdict
 
 MAX_TOKENS = 50
+# FR-06 guard: a longer "sentence" means segmentation failed and could leak the document.
+MAX_SENTENCE_CHARS = 1_000
 CONNECT_TIMEOUT_SECONDS = 2
 READ_TIMEOUT_SECONDS = 10
 
@@ -85,6 +87,9 @@ class BedrockVerifier:
 
     def verify(self, sentence: str, entity: Entity) -> Verdict:
         """Return the LLM verdict; raise ``LLMVerificationError`` on any failure."""
+        if len(sentence) > MAX_SENTENCE_CHARS:
+            raise LLMVerificationError(f"Sentence too long: {len(sentence)} characters")
+
         request = {
             "modelId": self._model_id,
             "system": [{"text": SYSTEM_PROMPT}],
@@ -116,7 +121,12 @@ def _parse(response: dict[str, Any]) -> LLMAnswer:
         content = response["output"]["message"]["content"]
     except (KeyError, TypeError):
         raise LLMVerificationError("Unexpected response shape") from None
-    if not isinstance(content, list) or len(content) != 1 or "text" not in content[0]:
+    if (
+        not isinstance(content, list)
+        or len(content) != 1
+        or not isinstance(content[0], dict)
+        or not isinstance(content[0].get("text"), str)
+    ):
         raise LLMVerificationError("Unexpected response content")
 
     try:

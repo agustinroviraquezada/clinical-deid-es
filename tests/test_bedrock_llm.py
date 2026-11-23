@@ -9,6 +9,7 @@ import pytest
 from botocore.exceptions import ClientError, ReadTimeoutError
 
 from clinical_deid.adapters.bedrock_llm import (
+    MAX_SENTENCE_CHARS,
     MAX_TOKENS,
     SYSTEM_PROMPT,
     BedrockVerifier,
@@ -158,8 +159,14 @@ def test_out_of_schema_reply_raises(text):
         {"output": {"message": {"content": []}}},
         {"output": {"message": {"content": [{"image": {}}]}}},
         {"output": {"message": {"content": [{"text": "{}"}, {"text": "{}"}]}}},
+        {"output": {"message": {"content": ["text"]}}},
+        {"output": {"message": {"content": [{"text": None}]}}},
+        {"output": {"message": {"content": [{"text": 1}]}}},
+        {"output": {"message": {"content": {"text": "{}"}}}},
+        {"output": "message"},
     ],
 )
+@pytest.mark.security
 def test_unexpected_response_shape_raises(response):
     verifier, _ = _verifier(response)
 
@@ -268,6 +275,27 @@ def test_reply_that_obeys_an_injection_is_rejected(reply):
 
     with pytest.raises(LLMVerificationError):
         verifier.verify(INJECTIONS[0], _entity(sentence=INJECTIONS[0]))
+
+
+@pytest.mark.security
+def test_sentence_at_the_length_limit_is_sent():
+    sentence = "Lucía Fernández " + "a" * (MAX_SENTENCE_CHARS - len("Lucía Fernández "))
+    verifier, client = _verifier(_reply('{"is_personal_data": true, "category": "NAME"}'))
+
+    verifier.verify(sentence, _entity(sentence=sentence))
+
+    assert len(client.calls) == 1
+
+
+@pytest.mark.security
+def test_sentence_over_the_length_limit_is_never_sent():
+    sentence = "Lucía Fernández " + "a" * (MAX_SENTENCE_CHARS - len("Lucía Fernández ") + 1)
+    verifier, client = _verifier(_reply('{"is_personal_data": true, "category": "NAME"}'))
+
+    with pytest.raises(LLMVerificationError):
+        verifier.verify(sentence, _entity(sentence=sentence))
+
+    assert client.calls == []
 
 
 @pytest.mark.security

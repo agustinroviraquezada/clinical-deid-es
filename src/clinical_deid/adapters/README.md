@@ -28,6 +28,8 @@ result = cascade.run("Paciente Lucía Fernández ...")
   short timeout and no retries; credentials come from the Lambda IAM role.
 - Fixed system prompt; the sentence and the candidate go in `<sentence>`/`<candidate>` tags as
   data, with `<`/`>` neutralised so the input cannot close a tag. `temperature=0`, low `maxTokens`.
+- A sentence longer than `MAX_SENTENCE_CHARS` (1,000) is never sent: it raises, so a failed
+  segmentation cannot leak the whole document (FR-06).
 - The reply must be exactly `{"is_personal_data": bool, "category": "<Category>"}` (Pydantic,
   strict, no extra fields). Any error, timeout or out-of-schema reply raises
   `LLMVerificationError`, and the cascade masks the entity (fail-safe).
