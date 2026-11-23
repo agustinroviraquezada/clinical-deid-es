@@ -10,7 +10,7 @@ the same signature, no inheritance.
 | --- | --- | --- |
 | `fakes.py` | `EntityDetector`, `LLMVerifier` | T1.3 (done) |
 | `hf_ner.py` | `EntityDetector` with `transformers` | T2.6 |
-| `bedrock_llm.py` | `LLMVerifier` with `boto3` + schema validation | T3.2 |
+| `bedrock_llm.py` | `LLMVerifier` with `boto3` + schema validation | T3.2 (done) |
 
 ### `fakes.py` — test doubles
 - `FakeDetector(entities)` — a **stub**: `detect()` returns the preset entities, whatever the text.
@@ -22,6 +22,19 @@ the same signature, no inheritance.
 cascade = Cascade(FakeDetector([entity]), FakeVerifier(verdict), threshold=0.85)
 result = cascade.run("Paciente Lucía Fernández ...")
 ```
+
+### `bedrock_llm.py` — LLM verifier on Bedrock
+- `BedrockVerifier.from_settings()` builds a `bedrock-runtime` client in `AWS_REGION` with a
+  short timeout and no retries; credentials come from the Lambda IAM role.
+- Fixed system prompt; the sentence and the candidate go in `<sentence>`/`<candidate>` tags as
+  data, with `<`/`>` neutralised so the input cannot close a tag. `temperature=0`, low `maxTokens`.
+- A sentence longer than `MAX_SENTENCE_CHARS` (1,000) is never sent: it raises, so a failed
+  segmentation cannot leak the whole document (FR-06).
+- The reply must be exactly `{"is_personal_data": bool, "category": "<Category>"}` (Pydantic,
+  strict, no extra fields). Any error, timeout or out-of-schema reply raises
+  `LLMVerificationError`, and the cascade masks the entity (fail-safe).
+- Unit tests inject a fake client. `RUN_BEDROCK_TESTS=1 uv run pytest -m integration` calls the
+  real model (costs a fraction of a cent; needs Bedrock model access in `eu-west-1`).
 
 ## Rules
 - Cascade tests always use `fakes.py`: no network, no model download, no AWS cost.
