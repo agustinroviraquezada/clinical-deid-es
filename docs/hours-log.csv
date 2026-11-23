@@ -10,3 +10,4 @@ date,hours,task,summary
 2026-11-16,3.0,T2.4,Model-only evaluation on MEDDOCAN dev/test; AC-02 met (test R 0.974 / P 0.965)
 2026-11-17,1.0,T2.5,Published fine-tuned model as private Hub repo with MEDDOCAN model card; revision pinned in config/model.json
 2026-11-18,3.0,T2.6,"API with the real model deployed on Lambda; Python 3.12 (ADR-0008); latency measured, memory 2,048 MB / 120 s"
+2026-11-23,3.0,T3.1,Threshold 0.96 and N=8 chosen on dev (ADR-0009); fixed NER line-break word boundary bug
