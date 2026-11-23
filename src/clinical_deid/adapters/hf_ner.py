@@ -67,7 +67,8 @@ class HFEntityDetector:
         """Return non-overlapping entities sorted by offset, confidence in [0, 1]."""
         if not text.strip():
             return []
-        spans = [s for s in (_trimmed(text, raw) for raw in self._classifier(text)) if s]
+        raw_spans = self._classifier(_plain_spaces(text))
+        spans = [s for s in (_trimmed(text, raw) for raw in raw_spans) if s]
         return [
             Entity(
                 start=s.start,
@@ -79,6 +80,15 @@ class HFEntityDetector:
             )
             for s in _merge_overlaps(spans)
         ]
+
+
+def _plain_spaces(text: str) -> str:
+    """``text`` with every whitespace character replaced by ``" "`` (same length and offsets).
+
+    When grouping sub-tokens into words, the HF pipeline treats only ``" "`` as a word boundary:
+    without this, the word after a line break or tab is merged into the previous entity.
+    """
+    return "".join(" " if char.isspace() else char for char in text)
 
 
 def _trimmed(text: str, raw: Mapping[str, Any]) -> _Span | None:
