@@ -7,31 +7,40 @@ from clinical_deid.config import Settings
 
 
 def test_defaults_match_design(monkeypatch):
-    for name in ("MODEL_PATH", "MAX_CHARACTERS", "CONFIDENCE_THRESHOLD"):
+    for name in ("MODEL_PATH", "MAX_CHARACTERS", "CONFIDENCE_THRESHOLD", "MAX_LLM_SENTENCES"):
         monkeypatch.delenv(name, raising=False)
 
     settings = Settings()
 
     assert settings.model_path == Path("/opt/model")
     assert settings.max_characters == 10_000
-    assert settings.confidence_threshold == 0.85
+    # Chosen on MEDDOCAN dev in T3.1 (ADR-0009).
+    assert settings.confidence_threshold == 0.96
+    assert settings.max_llm_sentences == 8
 
 
 def test_environment_variables_override_defaults(monkeypatch):
     monkeypatch.setenv("MODEL_PATH", "/srv/model")
     monkeypatch.setenv("MAX_CHARACTERS", "500")
     monkeypatch.setenv("CONFIDENCE_THRESHOLD", "0.5")
+    monkeypatch.setenv("MAX_LLM_SENTENCES", "3")
 
     settings = Settings()
 
     assert settings.model_path == Path("/srv/model")
     assert settings.max_characters == 500
     assert settings.confidence_threshold == 0.5
+    assert settings.max_llm_sentences == 3
 
 
 @pytest.mark.parametrize(
     ("name", "value"),
-    [("CONFIDENCE_THRESHOLD", "1.5"), ("CONFIDENCE_THRESHOLD", "-0.1"), ("MAX_CHARACTERS", "0")],
+    [
+        ("CONFIDENCE_THRESHOLD", "1.5"),
+        ("CONFIDENCE_THRESHOLD", "-0.1"),
+        ("MAX_CHARACTERS", "0"),
+        ("MAX_LLM_SENTENCES", "-1"),
+    ],
 )
 def test_out_of_range_values_are_rejected(monkeypatch, name, value):
     monkeypatch.setenv(name, value)

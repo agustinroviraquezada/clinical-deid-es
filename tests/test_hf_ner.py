@@ -212,3 +212,35 @@ def test_real_model_masks_a_synthetic_note():
     assert "Lucía" not in masked
     assert "12/03/2025" not in masked
     assert "[NAME]" in masked
+
+
+def test_classifier_sees_line_breaks_and_tabs_as_plain_spaces():
+    # The HF pipeline only treats " " as a word boundary when grouping words, so a word after
+    # "\n" would be merged into the previous entity ("Pedro.\nApellidos").
+    note = "Nombre: Pedro.\r\nApellidos:\tRuiz Gil."
+    pipe = FakePipeline([])
+
+    HFEntityDetector(pipe).detect(note)
+
+    [seen] = pipe.calls
+    assert seen == "Nombre: Pedro.  Apellidos: Ruiz Gil."
+    assert len(seen) == len(note)
+
+
+def test_entity_text_keeps_original_characters_when_whitespace_is_normalised():
+    note = "Nombre: Pedro\nRuiz\tGil."
+    pipe = FakePipeline(
+        [
+            _span(
+                "Pedro Ruiz Gil",
+                "NOMBRE_SUJETO_ASISTENCIA",
+                0.9,
+                text=note.replace("\n", " ").replace("\t", " "),
+            )
+        ]
+    )
+
+    [entity] = HFEntityDetector(pipe).detect(note)
+
+    assert entity.text == "Pedro\nRuiz\tGil"
+    assert (entity.start, entity.end) == (8, 22)

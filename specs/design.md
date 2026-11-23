@@ -76,8 +76,8 @@ class LLMVerifier(Protocol):
 4. If the LLM fails (timeout, error, response outside the schema) → the entity **is masked** (fail-safe).
 5. `Masker` replaces the accepted spans with `[CATEGORY]`.
 
-- **Threshold:** chosen once on dev — the one that maximises recall with precision ≥ 0.85. Stored in configuration.
-- **N:** PENDING (week 3, from the distribution of uncertain entities on dev).
+- **Threshold:** chosen once on dev — the upper edge of the highest confidence band with precision < 0.85 (ADR-0009): **0.96**. Stored in configuration.
+- **N:** **8** — 95th percentile of uncertain entities per document on dev at that threshold (ADR-0009).
 
 ## 4. LLM (DECIDED)
 
@@ -143,8 +143,8 @@ Errors: 400 validation, 401 no session, 413 text > 10,000 characters, 429 limit,
 | Variable | Example | Secret |
 | --- | --- | --- |
 | `MODEL_PATH` | `/opt/model` | No |
-| `CONFIDENCE_THRESHOLD` | `0.85` (provisional) | No |
-| `MAX_LLM_SENTENCES` | `10` (provisional) | No |
+| `CONFIDENCE_THRESHOLD` | `0.96` (dev, ADR-0009) | No |
+| `MAX_LLM_SENTENCES` | `8` (dev, ADR-0009) | No |
 | `MAX_CHARACTERS` | `10000` | No |
 | `BEDROCK_MODEL_ID` | `eu.anthropic.claude-haiku-4-5-20251001-v1:0` | No |
 | `AWS_REGION` | `eu-west-1` | No |
