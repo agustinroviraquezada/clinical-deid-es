@@ -48,5 +48,5 @@ Final project (TFM) of the Master's in AI-Assisted Development (BIG school). Due
 - Single AWS region: `eu-west-1`. Do not create AWS resources outside the plan in `specs/design.md`.
 
 ## Environment
-- Development on GitHub Codespaces (no GPU). Training on Colab with notebooks that clone the repo.
+- Development on a local Windows machine (no GPU); the Codespaces devcontainer is kept but not verified (#9). Training on Colab with notebooks that clone the repo.
 - Python 3.12 (ADR-0008), `uv` package manager.
