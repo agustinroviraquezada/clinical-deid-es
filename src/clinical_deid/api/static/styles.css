@@ -1,0 +1,98 @@
+:root {
+  --fg: #1a1a1a;
+  --muted: #4a4a4a;
+  --bg: #ffffff;
+  --accent: #0b5cad;
+  --border: #c8c8c8;
+  --notice-bg: #fff6df;
+  --notice-border: #b37a00;
+  --error: #a4161a;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--fg);
+  background: var(--bg);
+  line-height: 1.5;
+}
+
+body {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+h1 { margin-bottom: 0; }
+.subtitle, .hint, .attribution, footer { color: var(--muted); }
+.attribution, footer { font-size: 0.9rem; }
+
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 2px solid var(--border);
+  margin: 1rem 0;
+}
+
+.tabs button {
+  border: 1px solid var(--border);
+  border-bottom: none;
+  background: #f2f2f2;
+  color: var(--fg);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.tabs button[aria-selected="true"] {
+  background: var(--bg);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.notice {
+  background: var(--notice-bg);
+  border-left: 4px solid var(--notice-border);
+  padding: 0.5rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.notice h2 { margin-top: 0.25rem; font-size: 1.1rem; }
+
+.field { margin-bottom: 1rem; }
+.field label { display: block; font-weight: 600; margin-bottom: 0.25rem; }
+
+textarea, pre {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.95rem;
+  border: 1px solid var(--border);
+  padding: 0.5rem;
+}
+
+pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  background: #f7f7f7;
+}
+
+button {
+  background: var(--accent);
+  color: #ffffff;
+  border: none;
+  padding: 0.5rem 1.25rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+button:disabled { opacity: 0.6; cursor: wait; }
+
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.actions { display: flex; gap: 0.5rem; }
+.status.error { color: var(--error); font-weight: 600; }
+
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; }
+th, td { border: 1px solid var(--border); padding: 0.35rem 0.6rem; text-align: right; }
+th:first-child, td:first-child { text-align: left; }
+thead th { background: #f2f2f2; }

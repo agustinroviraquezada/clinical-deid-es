@@ -1,13 +1,16 @@
 """FastAPI application."""
 
+import json
 import logging
 import time
 from functools import lru_cache
+from pathlib import Path
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from clinical_deid import __version__
 from clinical_deid.adapters.disabled_llm import DisabledVerifier
@@ -24,7 +27,12 @@ from clinical_deid.config import get_settings
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+API_DIR = Path(__file__).resolve().parent
+STATIC_DIR = API_DIR / "static"
+REPORT_DIR = API_DIR / "report"
+
 app = FastAPI(title="clinical-deid", version=__version__)
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 @app.exception_handler(RequestValidationError)
@@ -59,6 +67,23 @@ def get_cascade() -> Cascade:
         max_llm_calls=settings.max_llm_sentences,
         llm_time_budget_s=settings.llm_time_budget_s,
     )
+
+
+@app.get("/", include_in_schema=False)
+def index() -> FileResponse:
+    """Single-page web interface (T4.1)."""
+    return FileResponse(STATIC_DIR / "index.html", media_type="text/html")
+
+
+@lru_cache(maxsize=1)
+def _comparison_report() -> dict:
+    return json.loads((REPORT_DIR / "comparison.json").read_text(encoding="utf-8"))
+
+
+@app.get("/api/comparison")
+def comparison() -> dict:
+    """Precomputed results of the three configurations (FR-11)."""
+    return _comparison_report()
 
 
 @app.get("/api/health", response_model=HealthResponse)
