@@ -1,0 +1,126 @@
+{
+  "cascade": {
+    "max_llm_calls": 8,
+    "threshold": 0.96
+  },
+  "configurations": {
+    "cascade": {
+      "status": "pending"
+    },
+    "llm_only": {
+      "status": "pending"
+    },
+    "model_only": {
+      "cost": {
+        "input_tokens": 0,
+        "llm_calls": 0,
+        "output_tokens": 0,
+        "usd_per_document": 0.0,
+        "usd_total": 0.0
+      },
+      "latency_s": {
+        "max": 3.1247763000428677,
+        "mean": 1.2250603184038773,
+        "p50": 1.3642119999276474,
+        "p95": 2.25376580003649
+      },
+      "n_documents": 250,
+      "n_failures": 0,
+      "overall": {
+        "f1": 0.8880910683012259,
+        "fn": 590,
+        "fp": 688,
+        "precision": 0.8805348150720611,
+        "recall": 0.8957781310722487,
+        "support": 5661,
+        "tp": 5071
+      },
+      "per_category": {
+        "AGE": {
+          "f1": 0.9712092130518234,
+          "fn": 12,
+          "fp": 18,
+          "precision": 0.9656488549618321,
+          "recall": 0.9768339768339769,
+          "support": 518,
+          "tp": 506
+        },
+        "CONTACT": {
+          "f1": 0.9581881533101045,
+          "fn": 7,
+          "fp": 17,
+          "precision": 0.9417808219178082,
+          "recall": 0.975177304964539,
+          "support": 282,
+          "tp": 275
+        },
+        "DATE": {
+          "f1": 0.9636963696369637,
+          "fn": 27,
+          "fp": 17,
+          "precision": 0.9717138103161398,
+          "recall": 0.955810147299509,
+          "support": 611,
+          "tp": 584
+        },
+        "ID": {
+          "f1": 0.6565717746820109,
+          "fn": 212,
+          "fp": 355,
+          "precision": 0.6042363433667781,
+          "recall": 0.7188328912466844,
+          "support": 754,
+          "tp": 542
+        },
+        "LOCATION": {
+          "f1": 0.9188619599578502,
+          "fn": 191,
+          "fp": 117,
+          "precision": 0.9371305749596991,
+          "recall": 0.9012919896640826,
+          "support": 1935,
+          "tp": 1744
+        },
+        "NAME": {
+          "f1": 0.8884875846501129,
+          "fn": 100,
+          "fp": 147,
+          "precision": 0.870026525198939,
+          "recall": 0.9077490774907749,
+          "support": 1084,
+          "tp": 984
+        },
+        "OTHER": {
+          "f1": 0.9470198675496688,
+          "fn": 39,
+          "fp": 9,
+          "precision": 0.9794520547945206,
+          "recall": 0.9166666666666666,
+          "support": 468,
+          "tp": 429
+        },
+        "PROFESSION": {
+          "f1": 0.5833333333333334,
+          "fn": 2,
+          "fp": 8,
+          "precision": 0.4666666666666667,
+          "recall": 0.7777777777777778,
+          "support": 9,
+          "tp": 7
+        }
+      },
+      "status": "done"
+    }
+  },
+  "llm_model_id": "eu.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "llm_only_sample": {
+    "seed": 2026,
+    "size": 50
+  },
+  "metric": "entity-level strict character span + category, micro-averaged",
+  "prices_usd_per_million_tokens": {
+    "input": 1.1,
+    "output": 5.5
+  },
+  "split": "test"
+}
