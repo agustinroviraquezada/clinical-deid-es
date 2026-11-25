@@ -23,6 +23,7 @@ dev = [
     "ruff>=0.6",
     "pre-commit>=3",
     "httpx>=0.28.1",
+    "uvicorn>=0.54.0",
 ]
 train = [
     "accelerate>=1.15.0",
