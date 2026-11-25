@@ -35,7 +35,7 @@ async def _invalid_request(request: Request, exc: RequestValidationError) -> JSO
 
 @lru_cache(maxsize=1)
 def get_cascade() -> Cascade:
-    """Build the model-only cascade once per process.
+    """Build the cascade once per process.
 
     Loading happens on the first request instead of at import time: Lambda limits the init
     phase to 10 s, and loading torch plus the model can take longer on a cold start.
@@ -44,9 +44,20 @@ def get_cascade() -> Cascade:
 
     settings = get_settings()
     detector = HFEntityDetector.from_pretrained(settings.model_path)
-    # The LLM is off until T3.5: a zero cap masks every uncertain entity without calling it.
+    if not settings.llm_enabled:
+        # Model only: a zero cap masks every uncertain entity without calling an LLM.
+        return Cascade(
+            detector, DisabledVerifier(), threshold=settings.confidence_threshold, max_llm_calls=0
+        )
+
+    from clinical_deid.adapters.bedrock_llm import BedrockVerifier
+
     return Cascade(
-        detector, DisabledVerifier(), threshold=settings.confidence_threshold, max_llm_calls=0
+        detector,
+        BedrockVerifier.from_settings(),
+        threshold=settings.confidence_threshold,
+        max_llm_calls=settings.max_llm_sentences,
+        llm_time_budget_s=settings.llm_time_budget_s,
     )
 
 

@@ -150,3 +150,67 @@ def test_logs_contain_metadata_but_never_the_text(caplog):
     assert "Teruel" not in logged
     assert f"chars={len(NOTE)}" in logged
     assert "entities=2" in logged
+
+
+class _StubVerifier:
+    def verify(self, sentence: str, entity: Entity) -> Verdict:  # pragma: no cover - not called
+        raise AssertionError("no LLM call expected while wiring")
+
+
+@pytest.fixture
+def wiring(monkeypatch):
+    """Call the real get_cascade() with fake settings, a fake model and no AWS client."""
+    from clinical_deid.adapters.bedrock_llm import BedrockVerifier
+    from clinical_deid.adapters.hf_ner import HFEntityDetector
+    from clinical_deid.api import app as app_module
+    from clinical_deid.config import Settings
+
+    detector = FakeDetector([])
+    monkeypatch.setattr(HFEntityDetector, "from_pretrained", classmethod(lambda cls, p: detector))
+    stub = _StubVerifier()
+    monkeypatch.setattr(BedrockVerifier, "from_settings", classmethod(lambda cls: stub))
+
+    def build(**overrides) -> Cascade:
+        settings = Settings(**overrides)
+        monkeypatch.setattr(app_module, "get_settings", lambda: settings)
+        app_module.get_cascade.cache_clear()
+        try:
+            return app_module.get_cascade()
+        finally:
+            app_module.get_cascade.cache_clear()
+
+    build.stub = stub
+    return build
+
+
+def test_cascade_is_model_only_when_llm_disabled(wiring):
+    cascade = wiring(llm_enabled=False)
+
+    assert isinstance(cascade._verifier, DisabledVerifier)
+    assert cascade._max_llm_calls == 0
+
+
+def test_cascade_uses_bedrock_with_cap_and_budget_when_llm_enabled(wiring):
+    cascade = wiring(llm_enabled=True, max_llm_sentences=5, llm_time_budget_s=30)
+
+    assert cascade._verifier is wiring.stub
+    assert cascade._max_llm_calls == 5
+    assert cascade._budget == 30
+
+
+@pytest.mark.security
+def test_logs_stay_metadata_only_when_the_llm_runs(caplog):
+    """The LLM path (n_llm > 0) must not add the sentence or the verdict to the logs."""
+    uncertain = [_entity(NOTE, "Teruel", Category.LOCATION, confidence=0.4)]
+    verifier = FakeVerifier(Verdict(True, Category.LOCATION))
+    cascade = Cascade(FakeDetector(uncertain), verifier, threshold=0.85, max_llm_calls=8)
+    app.dependency_overrides[get_cascade] = lambda: cascade
+
+    with caplog.at_level(logging.DEBUG):
+        response = client.post("/api/deidentify", json={"text": NOTE})
+
+    assert response.json()["metrics"]["n_llm"] == 1
+    logged = "\n".join(r.getMessage() + str(r.__dict__) for r in caplog.records)
+    assert "Teruel" not in logged
+    assert "Lucía" not in logged
+    assert "n_llm=1" in logged

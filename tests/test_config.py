@@ -57,3 +57,32 @@ def test_out_of_range_values_are_rejected(monkeypatch, name, value):
 
     with pytest.raises(ValidationError):
         Settings()
+
+
+def test_llm_is_off_by_default_with_a_budget_under_the_lambda_timeout(monkeypatch):
+    for name in ("LLM_ENABLED", "LLM_TIME_BUDGET_S"):
+        monkeypatch.delenv(name, raising=False)
+
+    settings = Settings()
+
+    assert settings.llm_enabled is False
+    # Worst case is budget + one call (2 s connect + 10 s read) + a cold start: well under 120 s.
+    assert settings.llm_time_budget_s == 45.0
+
+
+def test_llm_settings_read_from_environment(monkeypatch):
+    monkeypatch.setenv("LLM_ENABLED", "true")
+    monkeypatch.setenv("LLM_TIME_BUDGET_S", "20")
+
+    settings = Settings()
+
+    assert settings.llm_enabled is True
+    assert settings.llm_time_budget_s == 20.0
+
+
+@pytest.mark.parametrize("value", ["0", "-5", "100"])
+def test_llm_time_budget_out_of_range_is_rejected(monkeypatch, value):
+    monkeypatch.setenv("LLM_TIME_BUDGET_S", value)
+
+    with pytest.raises(ValidationError):
+        Settings()
