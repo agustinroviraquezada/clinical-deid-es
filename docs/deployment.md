@@ -188,7 +188,7 @@ echo "$IMAGE_URI"
 ## 4. Lambda function and its Function URL
 
 The execution role is the identity the function runs as. For the hello world it can only write
-its own logs. Bedrock permission for a single model is added in week 3.
+its own logs. Bedrock permission for a single model is added in section 8 (T3.5).
 
 ```bash
 aws iam create-role --role-name clinical-deid-lambda \
@@ -359,6 +359,125 @@ reservation that still leaves more than 1 GB of headroom over the ~935 MB used. 
 35 ms slower warm, which is invisible next to the ~1 s client round trip, and about 2 s slower
 on a cold start. Design §9 proposed 3,008 MB "to tune after measuring": this is that tuning.
 
+## 8. Turn on the LLM in the cascade (T3.5)
+
+Until now the function runs **model only**: `LLM_ENABLED` is unset (default `false`), so every
+uncertain entity is masked without calling an LLM. This section lets the Lambda role call
+Claude Haiku 4.5 on Bedrock and then switches the cascade on. Nothing in the image changes:
+the same code reads `LLM_ENABLED` at start-up.
+
+### 8.1 Prerequisite: Bedrock works for the account
+
+Bedrock must answer for your administrator user first. In the console (Bedrock → Playground,
+`eu-west-1`) send one message to Claude Haiku 4.5, or from the CLI:
+
+```bash
+aws bedrock-runtime converse --model-id eu.anthropic.claude-haiku-4-5-20251001-v1:0 \
+  --messages '[{"role":"user","content":[{"text":"Responde solo: ok"}]}]' \
+  --query 'output.message.content[0].text'
+```
+
+Do this with your own user, not the Lambda role. The first call to an Anthropic model on
+the account also activates the model (the Marketplace subscription), and that step needs
+permissions the Lambda role deliberately does not have. If it fails with `Error 002: Access
+to Bedrock models is not allowed for this account`, the account is still blocked; stop here.
+
+### 8.2 Why the policy names several EU regions
+
+The model ID starts with `eu.`: it is a **cross-region inference profile**. The request goes
+to `eu-west-1`, and Bedrock may serve it from another EU region that has capacity. The data
+stays in the EU. This is the one accepted exception to the single-region rule (`eu-west-1`):
+no resource is created elsewhere, but the inference may run in another EU region.
+
+IAM checks two things on each call: the profile, and the foundation model in the region
+that serves it. `infra/iam/lambda-bedrock-policy.json` therefore allows:
+
+1. `bedrock:InvokeModel` on the EU profile of this one model, and
+2. `bedrock:InvokeModel` on the same foundation model in each EU destination region, **only
+   when the call comes through that profile** (`bedrock:InferenceProfileArn` condition).
+
+There is no `*`: the role cannot call any other model, any other profile, or the foundation
+model directly. Check that the regions in the file match the profile's current routing
+(AWS may add regions); add any missing ARN to the file:
+
+```bash
+aws bedrock get-inference-profile \
+  --inference-profile-identifier eu.anthropic.claude-haiku-4-5-20251001-v1:0 \
+  --query 'models[].modelArn' --output text | tr '\t' '\n'
+```
+
+### 8.3 Attach the policy to the Lambda role
+
+An *inline* policy lives inside the role and is deleted with it. `sed` fills in the account
+ID, as in step 2.
+
+```bash
+aws iam put-role-policy --role-name clinical-deid-lambda --policy-name bedrock-invoke \
+  --policy-document "$(sed "s/ACCOUNT_ID/$ACCOUNT_ID/g" infra/iam/lambda-bedrock-policy.json)"
+aws iam get-role-policy --role-name clinical-deid-lambda --policy-name bedrock-invoke \
+  --query 'PolicyDocument.Statement[].Resource'
+```
+
+### 8.4 Switch the cascade on
+
+Environment variables belong to the function's configuration, not to the image, so
+`deploy.yml` (which only updates the code) keeps them. **`--environment` replaces all
+variables**, so always pass the full set. The values shown are the defaults of design §10:
+
+```bash
+aws lambda update-function-configuration --function-name clinical-deid \
+  --environment 'Variables={LLM_ENABLED=true,MAX_LLM_SENTENCES=8,LLM_TIME_BUDGET_S=45}' \
+  --query 'Environment.Variables'
+aws lambda wait function-updated --function-name clinical-deid
+```
+
+`LLM_TIME_BUDGET_S` stops new LLM calls once 45 s have passed in one request (the remaining
+uncertain entities are masked). The worst case, 45 s + one call (12 s) + a cold start, stays
+under the 120 s timeout.
+
+To go back to model only (for example if costs or errors rise), run the same command with
+`LLM_ENABLED=false`. It takes effect on the next request; no deployment is needed.
+
+### 8.5 Check the cascade at the URL
+
+Send a note with a doubtful entity. `metrics.n_llm` greater than 0 and entities with
+`"source": "llm"` show that Bedrock answered:
+
+```bash
+export FUNCTION_URL=$(aws lambda get-function-url-config --function-name clinical-deid \
+  --query FunctionUrl --output text)
+eval "$(aws configure export-credentials --profile "$AWS_PROFILE" --format env)"
+uvx awscurl==0.45 --service lambda --region "$AWS_REGION" \
+  -X POST -H 'Content-Type: application/json' \
+  -d '{"text": "Paciente Lucía Fernández, de 54 años, ingresó el 12/03/2025 en Teruel. Remitida por la Dra. Ana Gil desde el centro de salud Delicias."}' \
+  "${FUNCTION_URL}api/deidentify"
+unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_CREDENTIAL_EXPIRATION
+```
+
+If `n_llm` is above 0 but no entity has `"source": "llm"`, every call failed and the fail-safe
+masked them (the output is still safe). The usual cause is `AccessDeniedException`: compare
+the regions in the policy with step 8.2.
+
+### 8.6 Check that the logs hold metadata only
+
+```bash
+aws logs filter-log-events --log-group-name /aws/lambda/clinical-deid \
+  --filter-pattern deidentify --start-time $(( ($(date +%s) - 900) * 1000 )) \
+  --query 'events[].message' --output text
+```
+
+Each line must look like `deidentify chars=… entities=… n_llm=… latency_ms=…`. Searching for
+a word of the note must return nothing:
+
+```bash
+aws logs filter-log-events --log-group-name /aws/lambda/clinical-deid \
+  --filter-pattern '"Teruel"' --start-time $(( ($(date +%s) - 900) * 1000 )) \
+  --query 'length(events)'   # expected: 0
+```
+
+Bedrock itself keeps no prompts: model invocation logging is off by default in the account
+(Bedrock → Settings). Leave it off.
+
 ## Troubleshooting (seen during the first deployment)
 
 | Error | Cause | Fix |
@@ -375,5 +494,5 @@ on a cold start. Design §9 proposed 3,008 MB "to tune after measuring": this is
 
 - **27 Nov:** switch the URL to `--auth-type NONE` (`aws lambda update-function-url-config`)
   together with the app login (ADR-0006).
-- **After the grade:** delete the function, the image repository, the log group, both roles,
-  the OIDC provider and the GitHub environment.
+- **After the grade:** delete the function, the image repository, the log group, both roles
+  (with their inline policies), the OIDC provider and the GitHub environment.
