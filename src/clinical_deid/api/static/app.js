@@ -139,8 +139,26 @@ async function deidentify(event) {
   }
 }
 
+// Splits the masked text on [CATEGORY] placeholders and builds text nodes and chip spans.
+// Nothing is parsed as HTML, so a note containing markup is shown literally.
+const PLACEHOLDER = new RegExp(`\\[(${CATEGORIES.join("|")})\\]`, "g");
+
+function renderMasked(container, text) {
+  container.replaceChildren();
+  let last = 0;
+  for (const match of text.matchAll(PLACEHOLDER)) {
+    container.append(document.createTextNode(text.slice(last, match.index)));
+    const chip = document.createElement("span");
+    chip.className = `chip chip-${match[1]}`;
+    chip.textContent = match[0];
+    container.append(chip);
+    last = match.index + match[0].length;
+  }
+  container.append(document.createTextNode(text.slice(last)));
+}
+
 function showResult(body) {
-  $("result-text").textContent = body.deidentified_text;
+  renderMasked($("result-text"), body.deidentified_text);
   const m = body.metrics;
   $("result-metrics").textContent =
     `${m.n_entities} entities masked · ${m.n_llm} sentences checked by the LLM · ${m.latency_ms} ms`;
@@ -192,6 +210,7 @@ function buildTable(table, headers, rows) {
     cells.forEach((cell, index) => {
       const element = document.createElement(index === 0 ? "th" : "td");
       if (index === 0) element.scope = "row";
+      if (cell === "pending") element.className = "pending";
       element.textContent = cell;
       row.append(element);
     });
