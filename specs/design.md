@@ -44,8 +44,11 @@ modeling/                # Offline model lifecycle; never deployed (ADR-0007)
 │   └── download_meddocan.py
 ├── training/           # Fine-tuning code called from the Colab notebook
 └── evaluation/
-    └── evaluate.py     # 3 configurations → JSON + Markdown report written to
-                        # src/clinical_deid/api/report/ (consumed by the Comparison tab)
+    ├── evaluate.py     # Model only on BIO tokens (AC-02, T2.4)
+    ├── threshold.py    # Cascade threshold and N on dev (ADR-0009, T3.1)
+    ├── compare.py      # 3 configurations (AC-05) → comparison.{json,md} in
+    │                   # src/clinical_deid/api/report/ (consumed by the Comparison tab)
+    └── llm_only.py     # "LLM only" baseline: whole MEDDOCAN document, offline only (ADR-0011)
 notebooks/
 └── train_colab.ipynb   # Clones the repo and calls code from src/ and modeling/
 ```

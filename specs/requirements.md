@@ -102,3 +102,7 @@ API Gateway in front of Lambda, a second base model.
 - The task is nearly solved on MEDDOCAN (best system ≈ F1 0.975): the cascade's gain on that test set will be small.
 - An uncertain sentence leaves the system towards a third party (Bedrock). Mitigated with minimal fragments and a no-retention provider; explained in the slides.
 - Not a certified system for real health data.
+- AC-02 is measured on BIO tokens (test recall 0.974, T2.4). Measured on character spans, as the
+  product masks text, model-only recall is 0.896 (precision 0.881) on test, just below 0.90;
+  weakest categories are ID (0.719) and PROFESSION (0.778). Accepted on 25 Nov 2026 and reported
+  in the Comparison tab (T3.4, `comparison.md`).
