@@ -7,6 +7,7 @@ import clinical_deid
 from clinical_deid.adapters.disabled_llm import DisabledVerifier
 from clinical_deid.adapters.fakes import FakeDetector, FakeVerifier
 from clinical_deid.api.app import app, get_cascade
+from clinical_deid.api.auth import require_session
 from clinical_deid.cascade import Cascade
 from clinical_deid.domain.categories import Category
 from clinical_deid.domain.entities import Entity, Verdict
@@ -34,6 +35,8 @@ def fake_cascade(entities):
     """Replace the real model with a test double for every test in this module."""
     cascade = Cascade(FakeDetector(entities), DisabledVerifier(), threshold=0.85, max_llm_calls=0)
     app.dependency_overrides[get_cascade] = lambda: cascade
+    # Login is covered in test_auth.py; here every request is already authenticated.
+    app.dependency_overrides[require_session] = lambda: None
     yield
     app.dependency_overrides.clear()
 

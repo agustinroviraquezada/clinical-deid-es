@@ -86,3 +86,15 @@ def test_llm_time_budget_out_of_range_is_rejected(monkeypatch, value):
 
     with pytest.raises(ValidationError):
         Settings()
+
+
+def test_login_secrets_are_unset_by_default(monkeypatch):
+    for name in ("DEMO_USERNAME", "DEMO_PASSWORD_HASH", "SESSION_SECRET"):
+        monkeypatch.delenv(name, raising=False)
+
+    settings = Settings()
+
+    assert settings.demo_username == "demo"
+    # No default secrets: without them every login fails (fail closed, ADR-0006).
+    assert settings.demo_password_hash is None
+    assert settings.session_secret is None

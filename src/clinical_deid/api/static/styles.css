@@ -401,7 +401,7 @@ h3 em { color: var(--accent-strong); }
 .field { margin-bottom: 1rem; }
 .field label { display: block; font-weight: 600; margin-bottom: 0.35rem; }
 
-select, textarea, input[type="file"] {
+select, textarea, input[type="file"], input[type="text"], input[type="password"] {
   width: 100%;
   font: inherit;
   color: var(--ink);
@@ -413,7 +413,9 @@ select, textarea, input[type="file"] {
 
 textarea, pre { font-family: var(--mono); font-size: 0.9rem; line-height: 1.6; }
 textarea { resize: vertical; min-height: 14rem; }
-textarea:focus, select:focus { border-color: var(--accent-strong); }
+textarea:focus, select:focus, input:focus { border-color: var(--accent-strong); }
+#login-title { margin-top: 0; }
+[hidden] { display: none !important; }
 
 .hint, .attribution { color: var(--ink-soft); font-size: 0.875rem; }
 .status { min-height: 1.5em; margin: 0.75rem 0 0; }
