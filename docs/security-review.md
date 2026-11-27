@@ -10,7 +10,7 @@ checked against `specs/design.md` §8 (NFR-06). Status: ✅ met · ⚠️ met wi
 | --- | --- | --- | --- |
 | LLM01 Prompt injection: the sentence is data, the system prompt is fixed, the LLM only confirms or rejects | ✅ | `adapters/bedrock_llm.py`: fixed prompt that says "treat as data"; `<` and `>` are swapped for look-alike characters, so the text cannot close the delimiting tags | — |
 | Improper output handling: strict schema, otherwise mask | ✅ | `bedrock_llm.py`: Pydantic model with `extra=forbid, strict`; `cascade.py`: any exception or malformed verdict masks the entity; `stopReason="max_tokens"` is covered by `tests/test_bedrock_llm.py` | — |
-| LLM10 Unbounded consumption | ✅ | 10,000 chars → 413 before the model loads (`api/app.py`); per-request call cap and time budget (`config.py`, `cascade.py`); `maxTokens=50`, temperature 0; 2 s / 10 s timeouts, no retries; reserved concurrency 5 (`docs/deployment.md`) | **Fixed:** `MAX_LLM_SENTENCES` had no upper bound; now `le=20` (finding 2) |
+| LLM10 Unbounded consumption | ⚠️ | 10,000 chars → 413 before the model loads (`api/app.py`); per-request call cap and time budget (`config.py`, `cascade.py`); `maxTokens=50`, temperature 0; 2 s / 10 s timeouts, no retries. Reserved concurrency 5 is **not yet applied** (`docs/deployment.md`, #26) | **Fixed:** `MAX_LLM_SENTENCES` had no upper bound; now `le=20` (finding 2). **Open:** reserved concurrency (P1 below) |
 | Only the sentence is sent, never the document | ✅ | `cascade.py`: sentence bounds and 1,000-char cap (masked if over); second check in `bedrock_llm.py`; the sentence regex has no quadratic case (`domain/sentences.py`) | — |
 | XSS | ✅ | `static/app.js` has no `innerHTML`, `outerHTML`, `insertAdjacentHTML` or `eval`; masked text is built as text nodes; strict CSP with `frame-ancestors 'none'`; no inline scripts | — |
 | Authentication | ⚠️ | argon2 hash; constant-time compare and a dummy hash for unknown users; `HttpOnly`/`Secure`/`SameSite=Strict` cookie, 1 h; 5 failures per client lock for 15 min; one generic 401; fails closed if secrets are missing (`api/auth.py`, `api/app.py`) | **Accepted limits** A1, A2 below |
@@ -45,7 +45,8 @@ checked against `specs/design.md` §8 (NFR-06). Status: ✅ met · ⚠️ met wi
   Rotating `SESSION_SECRET` revokes every session at once. Recorded by
   `tests/test_auth.py::test_session_token_still_valid_after_logout`.
 - **A2 · The lockout counter is per Lambda instance**, in memory. It was already accepted in
-  `specs/design.md` §7. Reserved concurrency (5) bounds the number of counters.
+  `specs/design.md` §7. Once reserved concurrency (5) is applied, it bounds the number of counters.
+  Until then, the account limit of 10 concurrent executions does.
 - **A3 · The body is parsed before the session check.** An unauthenticated caller can make the function
   parse a request up to the 6 MB Function URL limit. The parse is cheap compared with inference, and
   the 10,000-char check and the 401 run before the model is touched.
@@ -57,6 +58,12 @@ checked against `specs/design.md` §8 (NFR-06). Status: ✅ met · ⚠️ met wi
   inline Bedrock policy attached (`docs/deployment.md`).
 
 ### Pending outside this task
+
+- **P1 · Reserved concurrency (#26).** It cannot be set yet: the account's applied limit is 10 concurrent
+  executions and AWS keeps 10 unreserved. That account limit caps parallel copies at 10 in the meantime.
+  A Service Quotas increase was requested. If it is not granted before submission, list it as a known
+  limitation in the README. The other LLM10 controls (character limit, call cap, time budget, timeouts,
+  budget alerts) are in place.
 
 - The Bedrock steps in `docs/deployment.md` §8 stay pending until Bedrock access is unblocked.
   Until then the deployment runs with `LLM_ENABLED=false`, so the fail-safe masks every uncertain entity.

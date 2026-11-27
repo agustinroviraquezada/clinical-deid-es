@@ -118,7 +118,7 @@ sequenceDiagram
 | --- | --- |
 | LLM01 Prompt injection | Sentence delimited as data, fixed prompt, LLM only confirms or rejects |
 | Improper output handling | Strict schema; anything else → mask |
-| LLM10 Unbounded consumption | 10,000 chars, N ≤ 20 calls, time budget, timeouts, concurrency 5, budget alerts |
+| LLM10 Unbounded consumption | 10,000 chars, N ≤ 20 calls, time budget, timeouts, budget alerts; reserved concurrency TBD (#26) |
 | XSS | `textContent` only, strict CSP |
 | Authentication | argon2 hash, `HttpOnly`/`Secure`/`SameSite=Strict` cookie, lockout |
 | Supply chain | Lockfile with hashes, pinned model revision, safetensors, SHA-pinned actions, Dependabot |
