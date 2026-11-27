@@ -226,6 +226,22 @@ aws lambda put-function-concurrency --function-name clinical-deid \
   --reserved-concurrent-executions 5
 ```
 
+Check it (read-only). The answer must show `"ReservedConcurrentExecutions": 5`; an empty
+answer means no reservation is set yet. Requests beyond the cap get a 429 from the URL.
+
+**Status (27 Nov 2026).** Not applied yet. The account's applied limit is 10 concurrent
+executions (`aws lambda get-account-settings`), so `put-function-concurrency` fails with
+`InvalidParameterValueException ... minimum value of [10]`. Service Quotas only accepts values
+above the default of 1,000, so the increase back to the default is requested through an AWS
+Support "Service limit increase" case (Lambda, EU (Ireland), Concurrent executions, 1,000).
+Until it is granted, the account limit of 10 is the implicit cap on parallel executions. Once
+granted, run the two commands above. Every `aws` command here assumes the right profile and
+region, for example `export AWS_PROFILE=deid-admin AWS_REGION=eu-west-1` after `aws login`.
+
+```bash
+aws lambda get-function-concurrency --function-name clinical-deid
+```
+
 ## 5. Turn on continuous deployment
 
 ```bash
