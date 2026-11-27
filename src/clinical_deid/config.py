@@ -3,7 +3,7 @@
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import Field
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings
 
 
@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     # LLM on Amazon Bedrock (design §4). Credentials come from the IAM role, never from here.
     bedrock_model_id: str = "eu.anthropic.claude-haiku-4-5-20251001-v1:0"
     aws_region: str = "eu-west-1"
+    # Demo login (design §7, ADR-0006). Both secrets come from the Lambda environment, never
+    # from the repo. If either is missing, every login fails (fail closed).
+    demo_username: str = "demo"
+    demo_password_hash: SecretStr | None = None
+    session_secret: SecretStr | None = None
 
 
 @lru_cache(maxsize=1)

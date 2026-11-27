@@ -7,6 +7,7 @@ license = "Apache-2.0"
 authors = [{ name = "Agustín Rovira" }]
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    "argon2-cffi>=25.1.0",
     "boto3>=1.44.9",
     "fastapi>=0.162.2",
     "mangum>=0.22.0",
@@ -58,6 +59,7 @@ ignore = ["S101"]  # assert in tests
 
 [tool.ruff.lint.per-file-ignores]
 "scripts/*" = ["S603", "S607"]  # subprocess calls to gh
+"tests/test_auth.py" = ["S105", "S106"]  # made-up credentials for the login tests
 
 # CPU-only torch: the Lambda image has no GPU, and the default PyPI wheels pull ~4 GB of CUDA
 # libraries. `explicit` means this index is used only for the packages mapped to it below.

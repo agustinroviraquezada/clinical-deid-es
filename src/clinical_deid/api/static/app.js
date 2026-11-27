@@ -92,6 +92,71 @@ function setupFileUpload() {
   });
 }
 
+// ---------- Login (T4.2) ----------
+// The session cookie is HttpOnly, so the page cannot read it: it learns that a login is
+// needed from a 401 and then retries the action that was refused.
+
+let pendingAction = null;
+
+function requireLogin(retry) {
+  pendingAction = retry;
+  $("logout-button").hidden = true;
+  $("login-form").hidden = false;
+  $("login-username").focus();
+}
+
+function markLoggedIn() {
+  $("login-form").hidden = true;
+  $("logout-button").hidden = false;
+}
+
+async function login(event) {
+  event.preventDefault();
+  const status = $("login-status");
+  const username = $("login-username").value;
+  const password = $("login-password").value;
+  if (!username || !password) {
+    setStatus(status, "Enter the username and the password.", true);
+    return;
+  }
+  $("login-button").disabled = true;
+  try {
+    const response = await fetch("/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+    if (!response.ok) {
+      const messages = {
+        401: "Wrong username or password.",
+        429: "Too many failed attempts. Please wait 15 minutes and try again.",
+      };
+      setStatus(status, messages[response.status] || "Unexpected error. Please try again.", true);
+      return;
+    }
+    $("login-password").value = "";
+    setStatus(status, "");
+    markLoggedIn();
+    const retry = pendingAction;
+    pendingAction = null;
+    if (retry) retry();
+  } catch {
+    setStatus(status, "Network error. Please check your connection and try again.", true);
+  } finally {
+    $("login-button").disabled = false;
+  }
+}
+
+async function logout() {
+  try {
+    await fetch("/api/logout", { method: "POST" });
+  } finally {
+    $("result").hidden = true;
+    setStatus($("status"), "You have logged out.");
+    requireLogin(null);
+  }
+}
+
 // ---------- De-identify ----------
 
 const ERROR_MESSAGES = {
@@ -126,10 +191,16 @@ async function deidentify(event) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text }),
     });
+    if (response.status === 401) {
+      setStatus(status, "Please log in to de-identify a note.");
+      requireLogin(() => $("deid-form").requestSubmit());
+      return;
+    }
     if (!response.ok) {
       setStatus(status, ERROR_MESSAGES[response.status] || "Unexpected error. Please try again.", true);
       return;
     }
+    markLoggedIn();
     showResult(await response.json());
     setStatus(status, "");
   } catch {
@@ -257,7 +328,13 @@ async function loadComparison() {
   setStatus(status, "Loading…");
   try {
     const response = await fetch("/api/comparison");
+    if (response.status === 401) {
+      setStatus(status, "Please log in on the De-identify tab to see the comparison.", true);
+      requireLogin(null);
+      return;
+    }
     if (!response.ok) throw new Error();
+    markLoggedIn();
     renderComparison(await response.json());
     comparisonLoaded = true;
     setStatus(status, "");
@@ -274,6 +351,8 @@ document.addEventListener("DOMContentLoaded", () => {
   setupFileUpload();
   $("note-input").addEventListener("input", updateCharCount);
   $("deid-form").addEventListener("submit", deidentify);
+  $("login-form").addEventListener("submit", login);
+  $("logout-button").addEventListener("click", logout);
   $("copy-button").addEventListener("click", copyResult);
   $("download-button").addEventListener("click", downloadResult);
   updateCharCount();

@@ -7,18 +7,28 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from clinical_deid import __version__
 from clinical_deid.adapters.disabled_llm import DisabledVerifier
+from clinical_deid.api.auth import (
+    COOKIE_NAME,
+    SESSION_TTL_S,
+    client_id,
+    login_attempts,
+    new_session_token,
+    require_session,
+    verify_credentials,
+)
 from clinical_deid.api.schemas import (
     DeidentifyRequest,
     DeidentifyResponse,
     EntityOut,
     HealthResponse,
+    LoginRequest,
     Metrics,
 )
 from clinical_deid.cascade import Cascade
@@ -75,12 +85,45 @@ def index() -> FileResponse:
     return FileResponse(STATIC_DIR / "index.html", media_type="text/html")
 
 
+@app.post("/api/login")
+def login(credentials: LoginRequest, request: Request, response: Response) -> dict:
+    """Demo login (FR-08): signed session cookie, attempt limit, generic errors."""
+    client = client_id(request)
+    if login_attempts.is_locked(client):
+        logger.warning("login locked out")
+        raise HTTPException(status_code=429, detail="Too many attempts. Try again later")
+    if not verify_credentials(credentials.username, credentials.password):
+        login_attempts.record_failure(client)
+        # Metadata only: never the username or the password.
+        logger.info("login failed")
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    login_attempts.clear(client)
+    response.set_cookie(
+        COOKIE_NAME,
+        new_session_token(),
+        max_age=SESSION_TTL_S,
+        httponly=True,
+        secure=True,
+        samesite="strict",
+        path="/",
+    )
+    logger.info("login ok")
+    return {"status": "ok"}
+
+
+@app.post("/api/logout", dependencies=[Depends(require_session)])
+def logout(response: Response) -> dict:
+    """End the session by expiring the cookie in the browser."""
+    response.delete_cookie(COOKIE_NAME, path="/", httponly=True, secure=True, samesite="strict")
+    return {"status": "ok"}
+
+
 @lru_cache(maxsize=1)
 def _comparison_report() -> dict:
     return json.loads((REPORT_DIR / "comparison.json").read_text(encoding="utf-8"))
 
 
-@app.get("/api/comparison")
+@app.get("/api/comparison", dependencies=[Depends(require_session)])
 def comparison() -> dict:
     """Precomputed results of the three configurations (FR-11)."""
     return _comparison_report()
@@ -108,6 +151,7 @@ def within_size_limit(request: DeidentifyRequest) -> DeidentifyRequest:
 
 @app.post("/api/deidentify", response_model=DeidentifyResponse)
 def deidentify(
+    _session: Annotated[None, Depends(require_session)],
     request: Annotated[DeidentifyRequest, Depends(within_size_limit)],
     cascade: Annotated[Cascade, Depends(get_cascade)],
 ) -> DeidentifyResponse:

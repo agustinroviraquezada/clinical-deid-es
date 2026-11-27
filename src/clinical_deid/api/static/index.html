@@ -193,6 +193,23 @@
           </aside>
 
           <div class="tool">
+            <form id="login-form" class="tool-panel" hidden novalidate aria-labelledby="login-title">
+              <h3 id="login-title">Log in to the demo</h3>
+              <p class="hint">The demo username and password are listed in the project README.</p>
+              <div class="field-row">
+                <div class="field">
+                  <label for="login-username">Username</label>
+                  <input type="text" id="login-username" autocomplete="username" maxlength="128" required>
+                </div>
+                <div class="field">
+                  <label for="login-password">Password</label>
+                  <input type="password" id="login-password" autocomplete="current-password" maxlength="128" required>
+                </div>
+              </div>
+              <button type="submit" id="login-button" class="button button-primary">Log in</button>
+              <p id="login-status" class="status" role="status" aria-live="polite"></p>
+            </form>
+
             <form id="deid-form" class="tool-panel" novalidate>
               <div class="field-row">
                 <div class="field">
@@ -218,6 +235,7 @@
               </div>
 
               <button type="submit" id="submit-button" class="button button-primary">De-identify note</button>
+              <button type="button" id="logout-button" class="button button-secondary" hidden>Log out</button>
               <p id="status" class="status" role="status" aria-live="polite"></p>
             </form>
 

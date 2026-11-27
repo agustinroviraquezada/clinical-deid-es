@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, StrictStr, field_validator
+from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
 
 from clinical_deid.domain.categories import Category
 
@@ -12,6 +12,15 @@ class HealthResponse(BaseModel):
 
     status: Literal["ok"]
     version: str
+
+
+class LoginRequest(BaseModel):
+    """Demo account credentials (FR-08). Bounded so a huge body cannot slow the hash check."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    username: StrictStr = Field(max_length=128)
+    password: StrictStr = Field(max_length=128)
 
 
 class DeidentifyRequest(BaseModel):
