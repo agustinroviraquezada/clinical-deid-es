@@ -295,3 +295,33 @@ def test_rejected_oversized_text_is_not_logged(caplog):
     logged = "\n".join(r.getMessage() + str(r.__dict__) for r in caplog.records)
     assert "Lucía" not in logged
     assert "Teruel" not in logged
+
+
+class _ExplodingCascade:
+    def run(self, text: str):
+        raise RuntimeError(f"boom while processing {text}")
+
+
+@pytest.mark.security
+def test_unhandled_error_returns_generic_500_with_headers_and_no_text_in_logs(caplog):
+    app.dependency_overrides[get_cascade] = lambda: _ExplodingCascade()
+
+    with caplog.at_level(logging.DEBUG):
+        response = client.post("/api/deidentify", json={"text": NOTE})
+
+    assert response.status_code == 500
+    assert response.json() == {"detail": "Internal error"}
+    assert "Lucía" not in response.text
+    _assert_security_headers(response)
+    assert response.headers["cache-control"] == "no-store"
+    logged = "\n".join(
+        r.getMessage() + str(r.__dict__) + str(r.exc_text or "") for r in caplog.records
+    )
+    assert "Lucía" not in logged
+    assert "boom" not in logged
+    assert "RuntimeError" in logged
+
+
+@pytest.mark.security
+def test_csp_allows_no_data_uris():
+    assert "data:" not in client.get("/").headers["content-security-policy"]

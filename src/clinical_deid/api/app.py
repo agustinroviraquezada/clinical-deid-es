@@ -55,7 +55,7 @@ CONTENT_SECURITY_POLICY = "; ".join(
         "default-src 'self'",
         "script-src 'self'",
         "style-src 'self'",
-        "img-src 'self' data:",
+        "img-src 'self'",
         "connect-src 'self'",
         "object-src 'none'",
         "base-uri 'none'",
@@ -75,8 +75,17 @@ SECURITY_HEADERS = {
 
 @app.middleware("http")
 async def _security_headers(request: Request, call_next):
-    """Add the security headers to every response, errors included."""
-    response = await call_next(request)
+    """Add the security headers to every response, unhandled errors included.
+
+    Unhandled errors are caught here rather than in an exception handler: Starlette runs
+    handlers for ``Exception`` in its outermost middleware, which would skip these headers.
+    """
+    try:
+        response = await call_next(request)
+    except Exception as exc:
+        # Type only: the message or traceback could carry part of the user's text.
+        logger.error("unhandled error type=%s path=%s", type(exc).__name__, request.url.path)
+        response = JSONResponse(status_code=500, content={"detail": "Internal error"})
     response.headers.update(SECURITY_HEADERS)
     if request.url.path.startswith("/api/"):
         # Responses carry clinical text: no browser or proxy may keep a copy.
