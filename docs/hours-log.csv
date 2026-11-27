@@ -12,5 +12,8 @@ date,hours,task,summary
 2026-11-18,3.0,T2.6,"API with the real model deployed on Lambda; Python 3.12 (ADR-0008); latency measured, memory 2,048 MB / 120 s"
 2026-11-23,3.0,T3.1,Threshold 0.96 and N=8 chosen on dev (ADR-0009); fixed NER line-break word boundary bug
 2026-11-23,1.0,T3.2,"Bedrock LLM verifier with strict schema, timeouts, fail-safe and prompt-injection tests; real Bedrock blocked at account level"
+2026-11-23,2.0,T3.3,"Cascade verifies uncertain entities with N cap, time budget and fail-safe; security-review fixes; PR #75"
 2026-11-25,1.0,T3.5,"Bedrock wiring behind LLM_ENABLED, scoped Lambda IAM policy, deployment runbook section 8; PR #78; URL check blocked by Bedrock Error 002"
 2026-11-25,1.0,T4.1,"Web interface: storytelling page, orange theme, examples, comparison tab, /api/comparison (PR #80)"
+2026-11-25,2.0,T3.4,"Bedrock Error 002 diagnosed as account-level (support case open); 3-configuration evaluation code, ADR-0011, model-only test run; spec updates"
+2026-11-27,2.0,T4.2,"Demo login: argon2 hash, signed session cookie, attempt limit, 401 on protected routes, login panel, env scripts"
