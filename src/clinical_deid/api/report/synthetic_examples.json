@@ -1,0 +1,554 @@
+{
+  "about": "Synthetic demo notes written with an LLM and reviewed by hand; all personal data are invented. Scores use strict character span + category on a handful of notes: they illustrate behaviour on other styles, they are not a benchmark.",
+  "threshold": 0.96,
+  "overall": {
+    "model_only": {
+      "precision": 0.7307692307692307,
+      "recall": 0.6785714285714286,
+      "f1": 0.7037037037037038,
+      "support": 56,
+      "tp": 38,
+      "fp": 14,
+      "fn": 18
+    }
+  },
+  "examples": [
+    {
+      "id": "synthetic-progress-note",
+      "title": "Progress note · internal medicine (SOAP)",
+      "style": "progress note",
+      "text_sha256": "9eabde50027cdcdec32b953d887773319f82ec835ea4ed6b5178012cfd3d71f7",
+      "n_gold": 9,
+      "configurations": {
+        "model_only": {
+          "status": "done",
+          "masked": "EVOLUCIÓN MEDICINA INTERNA - Planta 4ª\nFecha: [DATE]\nPaciente: [NAME], [AGE] a. NHC [ID].\n\nS: Refiere mejor descanso nocturno. Menos disnea, tolera decúbito a 30º. Su [NAME] comenta que ayer estuvo algo desorientada por la tarde.\nO: TA 132/78, FC 84 lpm, Tª 36,8 ºC, SatO2 94% con GN a 2 lpm. Crepitantes bibasales, menos que ayer. Edemas maleolares ++.\nA: ICC descompensada en mejoría. Probable síndrome confusional leve vespertino.\nP: Mantener furosemida iv 40 mg/12 h. Balance hídrico. Control de iones mañana. Si sigue estable, valorar alta el [DATE] con seguimiento en su centro de salud (CS [LOCATION]).\n\nDr. [NAME] - NºCol [DATE]",
+          "entities": [
+            {
+              "start": 46,
+              "end": 56,
+              "category": "DATE",
+              "confidence": 0.9948
+            },
+            {
+              "start": 67,
+              "end": 89,
+              "category": "NAME",
+              "confidence": 0.9659
+            },
+            {
+              "start": 91,
+              "end": 93,
+              "category": "AGE",
+              "confidence": 0.9715
+            },
+            {
+              "start": 101,
+              "end": 108,
+              "category": "ID",
+              "confidence": 0.9751
+            },
+            {
+              "start": 187,
+              "end": 197,
+              "category": "NAME",
+              "confidence": 0.7263
+            },
+            {
+              "start": 572,
+              "end": 582,
+              "category": "DATE",
+              "confidence": 0.9917
+            },
+            {
+              "start": 625,
+              "end": 633,
+              "category": "LOCATION",
+              "confidence": 0.5963
+            },
+            {
+              "start": 641,
+              "end": 662,
+              "category": "NAME",
+              "confidence": 0.9959
+            },
+            {
+              "start": 671,
+              "end": 679,
+              "category": "DATE",
+              "confidence": 0.7467
+            }
+          ],
+          "missed": [
+            {
+              "start": 91,
+              "end": 95,
+              "category": "AGE"
+            },
+            {
+              "start": 192,
+              "end": 197,
+              "category": "NAME"
+            },
+            {
+              "start": 622,
+              "end": 633,
+              "category": "LOCATION"
+            },
+            {
+              "start": 671,
+              "end": 679,
+              "category": "ID"
+            }
+          ],
+          "n_uncertain": 3,
+          "tp": 5,
+          "fp": 4,
+          "fn": 4
+        },
+        "cascade": {
+          "status": "pending"
+        },
+        "llm_only": {
+          "status": "pending"
+        }
+      }
+    },
+    {
+      "id": "synthetic-emergency-abbreviations",
+      "title": "Emergency note · heavy abbreviations",
+      "style": "abbreviations",
+      "text_sha256": "5c3de6e05e6a5d5c16a692fd2f81143a0120d7cdd586b2d356382ec06c95781b",
+      "n_gold": 10,
+      "configurations": {
+        "model_only": {
+          "status": "done",
+          "masked": "URG. [DATE]. Box 3.\nV 54a, NHC [ID], NASS [DATE]. Trae al pac. su [NAME] (Pilar), tlf [CONTACT].\nMC: dolor torácico opresivo de 2 h de evol., irradiado a MSI, cortejo vegetativo.\nAP: HTA, DM2, DL, exfumador (20 paq-año). NAMC. Camionero.\nEF: REG, sudoroso. TA 158/96, FC 102. AC: rítmico, sin soplos. AP: MVC.\nECG: ascenso ST V1-V4.\nJC: SCACEST anterior.\nPlan: AAS 300 mg, ticagrelor 180 mg. Código infarto activado, se avisa a hemodinámica del [LOCATION].\nDra. [NAME] (adj. URG)",
+          "entities": [
+            {
+              "start": 5,
+              "end": 15,
+              "category": "DATE",
+              "confidence": 0.9938
+            },
+            {
+              "start": 35,
+              "end": 42,
+              "category": "ID",
+              "confidence": 0.9802
+            },
+            {
+              "start": 49,
+              "end": 62,
+              "category": "DATE",
+              "confidence": 0.4829
+            },
+            {
+              "start": 80,
+              "end": 85,
+              "category": "NAME",
+              "confidence": 0.9519
+            },
+            {
+              "start": 99,
+              "end": 110,
+              "category": "CONTACT",
+              "confidence": 0.8914
+            },
+            {
+              "start": 460,
+              "end": 477,
+              "category": "LOCATION",
+              "confidence": 0.9789
+            },
+            {
+              "start": 484,
+              "end": 497,
+              "category": "NAME",
+              "confidence": 0.9737
+            }
+          ],
+          "missed": [
+            {
+              "start": 24,
+              "end": 25,
+              "category": "OTHER"
+            },
+            {
+              "start": 26,
+              "end": 29,
+              "category": "AGE"
+            },
+            {
+              "start": 49,
+              "end": 62,
+              "category": "ID"
+            },
+            {
+              "start": 87,
+              "end": 92,
+              "category": "NAME"
+            },
+            {
+              "start": 242,
+              "end": 251,
+              "category": "PROFESSION"
+            }
+          ],
+          "n_uncertain": 3,
+          "tp": 5,
+          "fp": 2,
+          "fn": 5
+        },
+        "cascade": {
+          "status": "pending"
+        },
+        "llm_only": {
+          "status": "pending"
+        }
+      }
+    },
+    {
+      "id": "synthetic-discharge-report",
+      "title": "Discharge report · pulmonology",
+      "style": "discharge report",
+      "text_sha256": "953cb8a8424f91ac8b88086cd9dbc4ea56eaab5c9edca78efea0baf138e3aae9",
+      "n_gold": 17,
+      "configurations": {
+        "model_only": {
+          "status": "done",
+          "masked": "INFORME DE ALTA HOSPITALARIA\nServicio de Neumología - [LOCATION]\n\nPaciente: [NAME]   Sexo: [OTHER]   Edad: [AGE]\nNHC: [ID]   Nº episodio: [ID]\nFecha de ingreso: [DATE]   Fecha de alta: [DATE]\nDomicilio: [LOCATION], [LOCATION] [LOCATION] (Toledo)\n\nMotivo de ingreso: neumonía adquirida en la comunidad en LID.\n\nEvolución: tratado con ceftriaxona y azitromicina, con buena respuesta clínica y radiológica. Afebril desde el tercer día. Trabajó como minero durante 30 años, actualmente retirado.\n\nDiagnóstico principal: neumonía de LID. EPOC GOLD 2.\n\nTratamiento al alta: amoxicilina/clavulánico 875/125 mg cada 8 h hasta completar 7 días. Inhaladores habituales.\n\nRevisión en consultas externas de Neumología el [DATE].\n\nFdo.: Dra. [NAME]   NºCol [DATE]\nContacto del servicio: neumologia.valdeoro@example.org",
+          "entities": [
+            {
+              "start": 54,
+              "end": 83,
+              "category": "LOCATION",
+              "confidence": 0.9888
+            },
+            {
+              "start": 95,
+              "end": 114,
+              "category": "NAME",
+              "confidence": 0.9956
+            },
+            {
+              "start": 123,
+              "end": 128,
+              "category": "OTHER",
+              "confidence": 0.9953
+            },
+            {
+              "start": 137,
+              "end": 144,
+              "category": "AGE",
+              "confidence": 0.9905
+            },
+            {
+              "start": 150,
+              "end": 157,
+              "category": "ID",
+              "confidence": 0.9873
+            },
+            {
+              "start": 173,
+              "end": 184,
+              "category": "ID",
+              "confidence": 0.5726
+            },
+            {
+              "start": 203,
+              "end": 213,
+              "category": "DATE",
+              "confidence": 0.9971
+            },
+            {
+              "start": 231,
+              "end": 241,
+              "category": "DATE",
+              "confidence": 0.9969
+            },
+            {
+              "start": 253,
+              "end": 284,
+              "category": "LOCATION",
+              "confidence": 0.9969
+            },
+            {
+              "start": 286,
+              "end": 291,
+              "category": "LOCATION",
+              "confidence": 0.9961
+            },
+            {
+              "start": 292,
+              "end": 312,
+              "category": "LOCATION",
+              "confidence": 0.9872
+            },
+            {
+              "start": 785,
+              "end": 795,
+              "category": "DATE",
+              "confidence": 0.9942
+            },
+            {
+              "start": 809,
+              "end": 831,
+              "category": "NAME",
+              "confidence": 0.9969
+            },
+            {
+              "start": 840,
+              "end": 851,
+              "category": "DATE",
+              "confidence": 0.7152
+            }
+          ],
+          "missed": [
+            {
+              "start": 314,
+              "end": 320,
+              "category": "LOCATION"
+            },
+            {
+              "start": 522,
+              "end": 528,
+              "category": "PROFESSION"
+            },
+            {
+              "start": 840,
+              "end": 851,
+              "category": "ID"
+            },
+            {
+              "start": 875,
+              "end": 906,
+              "category": "CONTACT"
+            }
+          ],
+          "n_uncertain": 2,
+          "tp": 13,
+          "fp": 1,
+          "fn": 4
+        },
+        "cascade": {
+          "status": "pending"
+        },
+        "llm_only": {
+          "status": "pending"
+        }
+      }
+    },
+    {
+      "id": "synthetic-nursing-note",
+      "title": "Nursing note · night shift",
+      "style": "nursing note",
+      "text_sha256": "4ac890d7ae43fa7a970f31e32ff764302cb92946d83b2e59cfad485da3b83a32",
+      "n_gold": 7,
+      "configurations": {
+        "model_only": {
+          "status": "done",
+          "masked": "Nota de enfermería - Turno de noche del [DATE]\nPte. [NAME], [AGE], ingresado por fractura de cadera dcha.\n23:00 h Dolor EVA 6, se administra metamizol pautado. Refiere que su [NAME] vendrá mañana a primera hora.\n02:30 h Inquieto, intenta retirarse la vía. Se avisa a médico de guardia (Dr. [NAME]), que pauta haloperidol 2,5 mg sc.\n06:00 h Descansa. Diuresis 900 ml en el turno. Constantes estables.\n[NAME] contactada en el [CONTACT] para informar.\nEnf. Nuria Pastor",
+          "entities": [
+            {
+              "start": 40,
+              "end": 50,
+              "category": "DATE",
+              "confidence": 0.9956
+            },
+            {
+              "start": 56,
+              "end": 73,
+              "category": "NAME",
+              "confidence": 0.9844
+            },
+            {
+              "start": 75,
+              "end": 82,
+              "category": "AGE",
+              "confidence": 0.9856
+            },
+            {
+              "start": 192,
+              "end": 201,
+              "category": "NAME",
+              "confidence": 0.8238
+            },
+            {
+              "start": 310,
+              "end": 325,
+              "category": "NAME",
+              "confidence": 0.9758
+            },
+            {
+              "start": 429,
+              "end": 436,
+              "category": "NAME",
+              "confidence": 0.7886
+            },
+            {
+              "start": 454,
+              "end": 465,
+              "category": "CONTACT",
+              "confidence": 0.9065
+            }
+          ],
+          "missed": [
+            {
+              "start": 197,
+              "end": 201,
+              "category": "NAME"
+            },
+            {
+              "start": 486,
+              "end": 498,
+              "category": "NAME"
+            }
+          ],
+          "n_uncertain": 3,
+          "tp": 5,
+          "fp": 2,
+          "fn": 2
+        },
+        "cascade": {
+          "status": "pending"
+        },
+        "llm_only": {
+          "status": "pending"
+        }
+      }
+    },
+    {
+      "id": "synthetic-referral-letter",
+      "title": "Referral from primary care · endocrinology",
+      "style": "referral letter",
+      "text_sha256": "700f3f034737add73ab24faa3b9702bcb4eb3a3074a54268549e3f6cd0b374f1",
+      "n_gold": 13,
+      "configurations": {
+        "model_only": {
+          "status": "done",
+          "masked": "HOJA DE INTERCONSULTA\nDe: [LOCATION] [LOCATION] - Medicina de Familia\nA: Servicio de Endocrinología, [LOCATION]\n\nPaciente: [NAME], [OTHER] de [AGE], TIS [CONTACT], [PROFESSION].\nTfno. de contacto: [CONTACT] · Correo: [CONTACT]\n\nMotivo: nódulo tiroideo de 2 cm palpable en LTD; eco del [DATE] con TI-RADS 4. TSH normal.\nAntecedentes: [NAME] intervenida de bocio. Sin otros AP de interés.\nSe solicita valoración y PAAF si procede.\n\nFirmado: Dr. [NAME] (MF), [LOCATION], [DATE]",
+          "entities": [
+            {
+              "start": 26,
+              "end": 32,
+              "category": "LOCATION",
+              "confidence": 0.2105
+            },
+            {
+              "start": 33,
+              "end": 51,
+              "category": "LOCATION",
+              "confidence": 0.6787
+            },
+            {
+              "start": 105,
+              "end": 140,
+              "category": "LOCATION",
+              "confidence": 0.9885
+            },
+            {
+              "start": 152,
+              "end": 172,
+              "category": "NAME",
+              "confidence": 0.9949
+            },
+            {
+              "start": 174,
+              "end": 179,
+              "category": "OTHER",
+              "confidence": 0.9939
+            },
+            {
+              "start": 183,
+              "end": 190,
+              "category": "AGE",
+              "confidence": 0.9902
+            },
+            {
+              "start": 196,
+              "end": 206,
+              "category": "CONTACT",
+              "confidence": 0.4407
+            },
+            {
+              "start": 208,
+              "end": 229,
+              "category": "PROFESSION",
+              "confidence": 0.4735
+            },
+            {
+              "start": 250,
+              "end": 261,
+              "category": "CONTACT",
+              "confidence": 0.9158
+            },
+            {
+              "start": 272,
+              "end": 299,
+              "category": "CONTACT",
+              "confidence": 0.9905
+            },
+            {
+              "start": 358,
+              "end": 368,
+              "category": "DATE",
+              "confidence": 0.9964
+            },
+            {
+              "start": 410,
+              "end": 415,
+              "category": "NAME",
+              "confidence": 0.9481
+            },
+            {
+              "start": 519,
+              "end": 537,
+              "category": "NAME",
+              "confidence": 0.997
+            },
+            {
+              "start": 544,
+              "end": 550,
+              "category": "LOCATION",
+              "confidence": 0.9918
+            },
+            {
+              "start": 552,
+              "end": 562,
+              "category": "DATE",
+              "confidence": 0.9945
+            }
+          ],
+          "missed": [
+            {
+              "start": 26,
+              "end": 51,
+              "category": "LOCATION"
+            },
+            {
+              "start": 196,
+              "end": 206,
+              "category": "ID"
+            },
+            {
+              "start": 208,
+              "end": 217,
+              "category": "PROFESSION"
+            }
+          ],
+          "n_uncertain": 6,
+          "tp": 10,
+          "fp": 5,
+          "fn": 3
+        },
+        "cascade": {
+          "status": "pending"
+        },
+        "llm_only": {
+          "status": "pending"
+        }
+      }
+    }
+  ]
+}

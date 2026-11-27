@@ -16,5 +16,35 @@
     "title": "MEDDOCAN test · ophthalmology",
     "source": "meddocan",
     "text": "Nombre: Minerva.\nApellidos: Alvarado Quintero.\nNHC: 3576324.\nNASS: 23 95642345 45.\nDomicilio: Calle Carnicer 17, 1 puerta 14 .\nLocalidad/ Provincia: Madrid.\nCP: 28028.\nDatos asistenciales.\nFecha de nacimiento: 13/06/1940.\nPaís: España.\nEdad: 76 años Sexo: M.\nFecha de Ingreso: 03/11/2016.\nMédico: Jose Luis Torres Copado NºCol: 28 28 46712.\nHistoria Actual:Mujer de 76 años con GCCA que fue remitida para tratamiento quirúrgico. Después de una trabeculectomía fracasada precozmente se decidió realizar un procedimiento combinado de implante valvular y facoemulsificación. Veinticuatro horas tras la cirugía la paciente mostraba una atalamia con contacto iridoendotelial periférico con una PIO de 40 mmHg. Después de descartar otras posibles causas de atalamia con hipertonía (desprendimiento coroideo, desprendimiento ciliocoroideo anular y bloqueo pupilar), se diagnosticó de glaucoma maligno y se realizó el mismo tratamiento que en el caso anterior (capsulotomía e hialoidotomía a través de la pupila). Al año de la cirugía, la PIO era de 12 mmHg con maleato de timolol 0,5% (Timoftol® 0,5%, Merck Sharp & Dohme de España SA, Madrid) cada 12 horas.\nRemitido por:  Jose Luis Torres Copado. Correo electrónico: a00799839@itesm.com"
+  },
+  {
+    "id": "synthetic-progress-note",
+    "title": "Progress note · internal medicine (SOAP)",
+    "source": "synthetic",
+    "text": "EVOLUCIÓN MEDICINA INTERNA - Planta 4ª\nFecha: 14/03/2025\nPaciente: Rosario Benítez Lozano, 78 a. NHC 4417823.\n\nS: Refiere mejor descanso nocturno. Menos disnea, tolera decúbito a 30º. Su hija Marta comenta que ayer estuvo algo desorientada por la tarde.\nO: TA 132/78, FC 84 lpm, Tª 36,8 ºC, SatO2 94% con GN a 2 lpm. Crepitantes bibasales, menos que ayer. Edemas maleolares ++.\nA: ICC descompensada en mejoría. Probable síndrome confusional leve vespertino.\nP: Mantener furosemida iv 40 mg/12 h. Balance hídrico. Control de iones mañana. Si sigue estable, valorar alta el 17/03/2025 con seguimiento en su centro de salud (CS Delicias).\n\nDr. Óscar Villalba Prieto - NºCol 50/12345"
+  },
+  {
+    "id": "synthetic-emergency-abbreviations",
+    "title": "Emergency note · heavy abbreviations",
+    "source": "synthetic",
+    "text": "URG. 22/06/2025. Box 3.\nV 54a, NHC 7730291, NASS 28/1234567/89. Trae al pac. su mujer (Pilar), tlf 611 482 907.\nMC: dolor torácico opresivo de 2 h de evol., irradiado a MSI, cortejo vegetativo.\nAP: HTA, DM2, DL, exfumador (20 paq-año). NAMC. Camionero.\nEF: REG, sudoroso. TA 158/96, FC 102. AC: rítmico, sin soplos. AP: MVC.\nECG: ascenso ST V1-V4.\nJC: SCACEST anterior.\nPlan: AAS 300 mg, ticagrelor 180 mg. Código infarto activado, se avisa a hemodinámica del H. U. Montealegre.\nDra. Inés Carrasco (adj. URG)"
+  },
+  {
+    "id": "synthetic-discharge-report",
+    "title": "Discharge report · pulmonology",
+    "source": "synthetic",
+    "text": "INFORME DE ALTA HOSPITALARIA\nServicio de Neumología - Hospital Comarcal de Valdeoro\n\nPaciente: Jaime Ortiz Salcedo   Sexo: Varón   Edad: 66 años\nNHC: 1029384   Nº episodio: 2025-004512\nFecha de ingreso: 02/09/2025   Fecha de alta: 09/09/2025\nDomicilio: Calle de los Almendros 23, 2º B, 45600 Talavera de la Reina (Toledo)\n\nMotivo de ingreso: neumonía adquirida en la comunidad en LID.\n\nEvolución: tratado con ceftriaxona y azitromicina, con buena respuesta clínica y radiológica. Afebril desde el tercer día. Trabajó como minero durante 30 años, actualmente retirado.\n\nDiagnóstico principal: neumonía de LID. EPOC GOLD 2.\n\nTratamiento al alta: amoxicilina/clavulánico 875/125 mg cada 8 h hasta completar 7 días. Inhaladores habituales.\n\nRevisión en consultas externas de Neumología el 14/10/2025.\n\nFdo.: Dra. Lucía Fernández-Arroyo   NºCol 45/28/09876\nContacto del servicio: neumologia.valdeoro@example.org"
+  },
+  {
+    "id": "synthetic-nursing-note",
+    "title": "Nursing note · night shift",
+    "source": "synthetic",
+    "text": "Nota de enfermería - Turno de noche del 05/11/2025\nPte. Antonio Muñoz Gil, 83 años, ingresado por fractura de cadera dcha.\n23:00 h Dolor EVA 6, se administra metamizol pautado. Refiere que su hijo Raúl vendrá mañana a primera hora.\n02:30 h Inquieto, intenta retirarse la vía. Se avisa a médico de guardia (Dr. Sergio Llorente), que pauta haloperidol 2,5 mg sc.\n06:00 h Descansa. Diuresis 900 ml en el turno. Constantes estables.\nFamilia contactada en el 925 310 448 para informar.\nEnf. Nuria Pastor"
+  },
+  {
+    "id": "synthetic-referral-letter",
+    "title": "Referral from primary care · endocrinology",
+    "source": "synthetic",
+    "text": "HOJA DE INTERCONSULTA\nDe: Centro de Salud Los Olmos - Medicina de Familia\nA: Servicio de Endocrinología, Hospital Universitario Sierra Norte\n\nPaciente: Carmen Rubio Esteban, mujer de 41 años, TIS 0123456789, profesora de primaria.\nTfno. de contacto: 678 214 335 · Correo: c.rubio.esteban@example.com\n\nMotivo: nódulo tiroideo de 2 cm palpable en LTD; eco del 18/02/2026 con TI-RADS 4. TSH normal.\nAntecedentes: madre intervenida de bocio. Sin otros AP de interés.\nSe solicita valoración y PAAF si procede.\n\nFirmado: Dr. Andrés Gil Navarro (MF), Madrid, 20/02/2026"
   }
 ]
