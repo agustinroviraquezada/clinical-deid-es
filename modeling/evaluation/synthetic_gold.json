@@ -1,0 +1,252 @@
+{
+  "_about": "Hand-made gold annotations for the synthetic demo notes (T4.4, FR-12). Each entry is [surface text, MEDDOCAN type]; every whole-word occurrence of the surface in the note is one entity.",
+  "synthetic-progress-note": {
+    "style": "progress note",
+    "entities": [
+      [
+        "14/03/2025",
+        "FECHAS"
+      ],
+      [
+        "Rosario Benítez Lozano",
+        "NOMBRE_SUJETO_ASISTENCIA"
+      ],
+      [
+        "78 a",
+        "EDAD_SUJETO_ASISTENCIA"
+      ],
+      [
+        "4417823",
+        "ID_SUJETO_ASISTENCIA"
+      ],
+      [
+        "Marta",
+        "FAMILIARES_SUJETO_ASISTENCIA"
+      ],
+      [
+        "17/03/2025",
+        "FECHAS"
+      ],
+      [
+        "CS Delicias",
+        "CENTRO_SALUD"
+      ],
+      [
+        "Óscar Villalba Prieto",
+        "NOMBRE_PERSONAL_SANITARIO"
+      ],
+      [
+        "50/12345",
+        "ID_TITULACION_PERSONAL_SANITARIO"
+      ]
+    ]
+  },
+  "synthetic-emergency-abbreviations": {
+    "style": "abbreviations",
+    "entities": [
+      [
+        "22/06/2025",
+        "FECHAS"
+      ],
+      [
+        "V",
+        "SEXO_SUJETO_ASISTENCIA"
+      ],
+      [
+        "54a",
+        "EDAD_SUJETO_ASISTENCIA"
+      ],
+      [
+        "7730291",
+        "ID_SUJETO_ASISTENCIA"
+      ],
+      [
+        "28/1234567/89",
+        "ID_ASEGURAMIENTO"
+      ],
+      [
+        "Pilar",
+        "FAMILIARES_SUJETO_ASISTENCIA"
+      ],
+      [
+        "611 482 907",
+        "NUMERO_TELEFONO"
+      ],
+      [
+        "Camionero",
+        "PROFESION"
+      ],
+      [
+        "H. U. Montealegre",
+        "HOSPITAL"
+      ],
+      [
+        "Inés Carrasco",
+        "NOMBRE_PERSONAL_SANITARIO"
+      ]
+    ]
+  },
+  "synthetic-discharge-report": {
+    "style": "discharge report",
+    "entities": [
+      [
+        "Hospital Comarcal de Valdeoro",
+        "HOSPITAL"
+      ],
+      [
+        "Jaime Ortiz Salcedo",
+        "NOMBRE_SUJETO_ASISTENCIA"
+      ],
+      [
+        "Varón",
+        "SEXO_SUJETO_ASISTENCIA"
+      ],
+      [
+        "66 años",
+        "EDAD_SUJETO_ASISTENCIA"
+      ],
+      [
+        "1029384",
+        "ID_SUJETO_ASISTENCIA"
+      ],
+      [
+        "2025-004512",
+        "ID_CONTACTO_ASISTENCIAL"
+      ],
+      [
+        "02/09/2025",
+        "FECHAS"
+      ],
+      [
+        "09/09/2025",
+        "FECHAS"
+      ],
+      [
+        "Calle de los Almendros 23, 2º B",
+        "CALLE"
+      ],
+      [
+        "45600",
+        "TERRITORIO"
+      ],
+      [
+        "Talavera de la Reina",
+        "TERRITORIO"
+      ],
+      [
+        "Toledo",
+        "TERRITORIO"
+      ],
+      [
+        "minero",
+        "PROFESION"
+      ],
+      [
+        "14/10/2025",
+        "FECHAS"
+      ],
+      [
+        "Lucía Fernández-Arroyo",
+        "NOMBRE_PERSONAL_SANITARIO"
+      ],
+      [
+        "45/28/09876",
+        "ID_TITULACION_PERSONAL_SANITARIO"
+      ],
+      [
+        "neumologia.valdeoro@example.org",
+        "CORREO_ELECTRONICO"
+      ]
+    ]
+  },
+  "synthetic-nursing-note": {
+    "style": "nursing note",
+    "entities": [
+      [
+        "05/11/2025",
+        "FECHAS"
+      ],
+      [
+        "Antonio Muñoz Gil",
+        "NOMBRE_SUJETO_ASISTENCIA"
+      ],
+      [
+        "83 años",
+        "EDAD_SUJETO_ASISTENCIA"
+      ],
+      [
+        "Raúl",
+        "FAMILIARES_SUJETO_ASISTENCIA"
+      ],
+      [
+        "Sergio Llorente",
+        "NOMBRE_PERSONAL_SANITARIO"
+      ],
+      [
+        "925 310 448",
+        "NUMERO_TELEFONO"
+      ],
+      [
+        "Nuria Pastor",
+        "NOMBRE_PERSONAL_SANITARIO"
+      ]
+    ]
+  },
+  "synthetic-referral-letter": {
+    "style": "referral letter",
+    "entities": [
+      [
+        "Centro de Salud Los Olmos",
+        "CENTRO_SALUD"
+      ],
+      [
+        "Hospital Universitario Sierra Norte",
+        "HOSPITAL"
+      ],
+      [
+        "Carmen Rubio Esteban",
+        "NOMBRE_SUJETO_ASISTENCIA"
+      ],
+      [
+        "mujer",
+        "SEXO_SUJETO_ASISTENCIA"
+      ],
+      [
+        "41 años",
+        "EDAD_SUJETO_ASISTENCIA"
+      ],
+      [
+        "0123456789",
+        "ID_ASEGURAMIENTO"
+      ],
+      [
+        "profesora",
+        "PROFESION"
+      ],
+      [
+        "678 214 335",
+        "NUMERO_TELEFONO"
+      ],
+      [
+        "c.rubio.esteban@example.com",
+        "CORREO_ELECTRONICO"
+      ],
+      [
+        "18/02/2026",
+        "FECHAS"
+      ],
+      [
+        "Andrés Gil Navarro",
+        "NOMBRE_PERSONAL_SANITARIO"
+      ],
+      [
+        "Madrid",
+        "TERRITORIO"
+      ],
+      [
+        "20/02/2026",
+        "FECHAS"
+      ]
+    ]
+  }
+}
