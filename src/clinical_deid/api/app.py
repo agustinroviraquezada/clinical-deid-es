@@ -41,8 +41,56 @@ API_DIR = Path(__file__).resolve().parent
 STATIC_DIR = API_DIR / "static"
 REPORT_DIR = API_DIR / "report"
 
-app = FastAPI(title="clinical-deid", version=__version__)
+# No /docs, /redoc or /openapi.json: they are not needed by the web page, they map the API
+# for anyone, and Swagger UI loads from a CDN that the CSP below would block.
+app = FastAPI(
+    title="clinical-deid", version=__version__, docs_url=None, redoc_url=None, openapi_url=None
+)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+# XSS and clickjacking defence in depth (design §8): the page only loads its own script, styles
+# and data, and nothing may frame it. The frontend has no inline script or style to allow.
+CONTENT_SECURITY_POLICY = "; ".join(
+    [
+        "default-src 'self'",
+        "script-src 'self'",
+        "style-src 'self'",
+        "img-src 'self'",
+        "connect-src 'self'",
+        "object-src 'none'",
+        "base-uri 'none'",
+        "form-action 'self'",
+        "frame-ancestors 'none'",
+    ]
+)
+SECURITY_HEADERS = {
+    "Content-Security-Policy": CONTENT_SECURITY_POLICY,
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "no-referrer",
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+}
+
+
+@app.middleware("http")
+async def _security_headers(request: Request, call_next):
+    """Add the security headers to every response, unhandled errors included.
+
+    Unhandled errors are caught here rather than in an exception handler: Starlette runs
+    handlers for ``Exception`` in its outermost middleware, which would skip these headers.
+    """
+    try:
+        response = await call_next(request)
+    except Exception as exc:
+        # Type only: the message or traceback could carry part of the user's text.
+        logger.error("unhandled error type=%s path=%s", type(exc).__name__, request.url.path)
+        response = JSONResponse(status_code=500, content={"detail": "Internal error"})
+    response.headers.update(SECURITY_HEADERS)
+    if request.url.path.startswith("/api/"):
+        # Responses carry clinical text: no browser or proxy may keep a copy.
+        response.headers["Cache-Control"] = "no-store"
+    return response
 
 
 @app.exception_handler(RequestValidationError)

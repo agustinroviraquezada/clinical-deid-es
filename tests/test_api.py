@@ -217,3 +217,111 @@ def test_logs_stay_metadata_only_when_the_llm_runs(caplog):
     assert "Teruel" not in logged
     assert "Lucía" not in logged
     assert "n_llm=1" in logged
+
+
+EXPECTED_HEADERS = {
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "DENY",
+    "referrer-policy": "no-referrer",
+}
+
+
+def _assert_security_headers(response) -> None:
+    for name, value in EXPECTED_HEADERS.items():
+        assert response.headers.get(name) == value, name
+    csp = response.headers["content-security-policy"]
+    for directive in (
+        "default-src 'self'",
+        "script-src 'self'",
+        "style-src 'self'",
+        "object-src 'none'",
+        "frame-ancestors 'none'",
+        "base-uri 'none'",
+    ):
+        assert directive in csp
+    assert "unsafe-inline" not in csp
+    assert "unsafe-eval" not in csp
+    assert "max-age=" in response.headers["strict-transport-security"]
+    assert "camera=()" in response.headers["permissions-policy"]
+
+
+@pytest.mark.security
+@pytest.mark.parametrize("path", ["/", "/static/app.js", "/static/styles.css", "/api/health"])
+def test_security_headers_on_pages_and_api(path):
+    response = client.get(path)
+
+    assert response.status_code == 200
+    _assert_security_headers(response)
+
+
+@pytest.mark.security
+@pytest.mark.parametrize(
+    ("payload", "status"),
+    [({"text": NOTE}, 200), ({"text": "a" * 10_001}, 413), ({"text": ""}, 400)],
+)
+def test_security_headers_and_no_store_on_deidentify(payload, status):
+    response = client.post("/api/deidentify", json=payload)
+
+    assert response.status_code == status
+    _assert_security_headers(response)
+    assert response.headers["cache-control"] == "no-store"
+
+
+@pytest.mark.security
+def test_security_headers_on_unauthenticated_request():
+    app.dependency_overrides.pop(require_session)
+
+    response = client.post("/api/deidentify", json={"text": NOTE})
+
+    assert response.status_code == 401
+    _assert_security_headers(response)
+    assert response.headers["cache-control"] == "no-store"
+
+
+@pytest.mark.security
+@pytest.mark.parametrize("path", ["/docs", "/redoc", "/openapi.json"])
+def test_interactive_docs_and_schema_are_disabled(path):
+    assert client.get(path).status_code == 404
+
+
+@pytest.mark.security
+def test_rejected_oversized_text_is_not_logged(caplog):
+    text = NOTE + " " + "x" * 10_000
+
+    with caplog.at_level(logging.DEBUG):
+        response = client.post("/api/deidentify", json={"text": text})
+
+    assert response.status_code == 413
+    logged = "\n".join(r.getMessage() + str(r.__dict__) for r in caplog.records)
+    assert "Lucía" not in logged
+    assert "Teruel" not in logged
+
+
+class _ExplodingCascade:
+    def run(self, text: str):
+        raise RuntimeError(f"boom while processing {text}")
+
+
+@pytest.mark.security
+def test_unhandled_error_returns_generic_500_with_headers_and_no_text_in_logs(caplog):
+    app.dependency_overrides[get_cascade] = lambda: _ExplodingCascade()
+
+    with caplog.at_level(logging.DEBUG):
+        response = client.post("/api/deidentify", json={"text": NOTE})
+
+    assert response.status_code == 500
+    assert response.json() == {"detail": "Internal error"}
+    assert "Lucía" not in response.text
+    _assert_security_headers(response)
+    assert response.headers["cache-control"] == "no-store"
+    logged = "\n".join(
+        r.getMessage() + str(r.__dict__) + str(r.exc_text or "") for r in caplog.records
+    )
+    assert "Lucía" not in logged
+    assert "boom" not in logged
+    assert "RuntimeError" in logged
+
+
+@pytest.mark.security
+def test_csp_allows_no_data_uris():
+    assert "data:" not in client.get("/").headers["content-security-policy"]
