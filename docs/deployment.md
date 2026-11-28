@@ -600,6 +600,43 @@ Other cases:
 above passed. T5.4 does **not** need to repeat this section. It only switches the URL to `NONE` and
 retests the login from the public URL, without awscurl.
 
+## 10. Make the model public and update its card (T5.1)
+
+No AWS here: this is the Hugging Face Hub. The deployment keeps working during and after these
+steps, because `deploy.yml` downloads the weights of the revision pinned in `config/model.json`,
+and a new commit that only changes `README.md` does not touch those weights.
+
+1. Regenerate the model card from the committed reports (no token needed, nothing is uploaded):
+
+   ```bash
+   uv run python -m modeling.publish.publish_model \
+     --run-log modeling/training/runs/run-1.json --card-only model-card.md
+   ```
+
+2. Upload it as the repository's `README.md` with a **write** token (create a fine-grained one
+   for this repository only, and delete it afterwards). The CLI asks for the token with a hidden
+   prompt:
+
+   ```bash
+   uvx --from huggingface_hub hf auth login
+   uvx --from huggingface_hub hf upload ahrovira/clinical-deid-es-meddocan model-card.md README.md \
+     --commit-message "Update model card (T5.1)"
+   uvx --from huggingface_hub hf auth logout
+   rm model-card.md
+   ```
+
+   Alternatively, on the model page: *Files and versions → Add file → Upload files*, renaming the
+   file to `README.md` first.
+
+3. Make the repository public: *Settings → Change model visibility → Make public*.
+
+4. Check, from a private browser window (signed out), that
+   <https://huggingface.co/ahrovira/clinical-deid-es-meddocan> shows the card and the files.
+
+From now on `publish_model.py` refuses a full upload (it requires a private repository): that is
+deliberate, a new training run would be published again as a new private repository.
+`config/model.json` is not changed.
+
 ## Troubleshooting (seen during the first deployment)
 
 | Error | Cause | Fix |
