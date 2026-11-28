@@ -161,7 +161,8 @@ MEDDOCAN test set (250 documents, 5,661 entities). Full reports in
 - Deployment: <https://kr4wgpmvqlswvvyauj7tazz5tu0sayjq.lambda-url.eu-west-1.on.aws/> (sign in with the test access above)
 - Model on the Hugging Face Hub:
   [ahrovira/clinical-deid-es-meddocan](https://huggingface.co/ahrovira/clinical-deid-es-meddocan)
-- Slides: added in T5.2
+- Slides: [docs/slides/slides.pdf](docs/slides/slides.pdf) (source:
+  [slides.md](docs/slides/slides.md), a [Marp](https://marp.app/) deck)
 - Video: added in T5.3
 
 ## Data and attribution

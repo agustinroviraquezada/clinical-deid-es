@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+  <title>Two columns: problems the agent caught, and the safety nets that caught the agent's own mistakes</title>
+  <rect width="1200" height="420" fill="#ffffff"/>
+
+  <rect x="20" y="20" width="570" height="380" rx="16" fill="#fafafa" stroke="#4b4b4b" stroke-width="2"/>
+  <text x="44" y="58" font-size="20" font-weight="700" fill="#111">The agent caught</text>
+  <g font-size="16" fill="#111">
+    <rect x="44" y="80" width="522" height="66" rx="10" fill="#ffffff" stroke="#ececec"/>
+    <text x="60" y="106" font-weight="700">Lambda rejected the image</text>
+    <text x="60" y="130" fill="#4b4b4b">Docker provenance manifest list → build flag fixed</text>
+    <rect x="44" y="156" width="522" height="66" rx="10" fill="#ffffff" stroke="#ececec"/>
+    <text x="60" y="182" font-weight="700">torch would not install on Lambda's Python 3.11</text>
+    <text x="60" y="206" fill="#4b4b4b">glibc too old → Python 3.12 (ADR-0008)</text>
+    <rect x="44" y="232" width="522" height="66" rx="10" fill="#ffffff" stroke="#ececec"/>
+    <text x="60" y="258" font-weight="700">The real model failed on a 512 MB Lambda</text>
+    <text x="60" y="282" fill="#4b4b4b">measured cold start → 2,048 MB / 120 s</text>
+    <rect x="44" y="308" width="522" height="66" rx="10" fill="#ffffff" stroke="#ececec"/>
+    <text x="60" y="334" font-weight="700">The design's threshold rule gave t = 0</text>
+    <text x="60" y="358" fill="#4b4b4b">stopped and asked → ADR-0009</text>
+  </g>
+
+  <rect x="610" y="20" width="570" height="380" rx="16" fill="#fff6f0" stroke="#f25c19" stroke-width="2.5"/>
+  <text x="634" y="58" font-size="20" font-weight="700" fill="#111">The process caught the agent</text>
+  <g font-size="16" fill="#111">
+    <rect x="634" y="80" width="522" height="90" rx="10" fill="#ffffff" stroke="#ffd0b8"/>
+    <text x="650" y="106" font-weight="700">Login (T4.2) broke the deploy smoke test</text>
+    <text x="650" y="130" fill="#4b4b4b">401 on every run: nothing shipped for two tasks.</text>
+    <text x="650" y="154" fill="#c9430c" font-weight="700">Caught by /security-review in T4.5</text>
+    <rect x="634" y="180" width="522" height="90" rx="10" fill="#ffffff" stroke="#ffd0b8"/>
+    <text x="650" y="206" font-weight="700">Hours-log commits missed main, three times</text>
+    <text x="650" y="230" fill="#4b4b4b">pushed after their PR had already merged.</text>
+    <text x="650" y="254" fill="#c9430c" font-weight="700">Caught at /close-session → git merge-base check</text>
+    <rect x="634" y="280" width="522" height="96" rx="10" fill="#ffffff" stroke="#ffd0b8"/>
+    <text x="650" y="306" font-weight="700">LICENSE said MIT, design said Apache-2.0</text>
+    <text x="650" y="330" fill="#4b4b4b">flagged, not changed: a DECIDED item is mine.</text>
+    <text x="650" y="354" fill="#c9430c" font-weight="700">Caught by reading the spec before the docs</text>
+  </g>
+</svg>

@@ -1,5 +1,8 @@
 # Slide draft — Cascade clinical de-identification (T4.5)
 
+> **Superseded** by the final deck in T5.2: [slides.md](slides.md) (rendered as `slides.pdf`).
+> Kept as the planning record.
+
 Draft for T5.2: structure, key points, speaker notes and diagrams. Target: about 12 slides and
 about 10 minutes. Figures come from `src/clinical_deid/api/report/`. Cascade and LLM-only figures
 are still pending (Bedrock access), so their slots are marked **TBD**.

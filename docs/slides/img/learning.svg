@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 450" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+  <title>How the author learned to work with the assistant, in four stages, each with a real request and what changed</title>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#c9430c"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="450" fill="#ffffff"/>
+  <line x1="20" y1="40" x2="1170" y2="40" stroke="#c9430c" stroke-width="3" marker-end="url(#a)"/>
+
+  <!-- stage cards -->
+  <g>
+    <circle cx="150" cy="40" r="16" fill="#c9430c"/><text x="150" y="46" text-anchor="middle" font-size="17" font-weight="700" fill="#fff">1</text>
+    <rect x="20" y="74" width="270" height="360" rx="14" fill="#fafafa" stroke="#4b4b4b" stroke-width="2"/>
+    <text x="40" y="106" font-size="18" font-weight="700" fill="#111">Follow</text>
+    <text x="40" y="128" font-size="14" fill="#4b4b4b">Week 1 · accounts, AWS, CI</text>
+    <rect x="36" y="144" width="238" height="96" rx="10" fill="#ffffff" stroke="#ececec"/>
+    <text x="48" y="170" font-size="15" font-style="italic" fill="#111">"I just installed the AWS</text>
+    <text x="48" y="192" font-size="15" font-style="italic" fill="#111">CLI and I don't know the</text>
+    <text x="48" y="214" font-size="15" font-style="italic" fill="#111">risks of giving you access."</text>
+    <text x="40" y="272" font-size="15" font-weight="700" fill="#c9430c">What changed</text>
+    <text x="40" y="296" font-size="15" fill="#111">I run every AWS command</text>
+    <text x="40" y="318" font-size="15" fill="#111">myself; the agent writes the</text>
+    <text x="40" y="340" font-size="15" fill="#111">runbook and explains each</text>
+    <text x="40" y="362" font-size="15" fill="#111">step. ~/.aws is denied to it.</text>
+  </g>
+  <g>
+    <circle cx="445" cy="40" r="16" fill="#c9430c"/><text x="445" y="46" text-anchor="middle" font-size="17" font-weight="700" fill="#fff">2</text>
+    <rect x="315" y="74" width="270" height="360" rx="14" fill="#fafafa" stroke="#4b4b4b" stroke-width="2"/>
+    <text x="335" y="106" font-size="18" font-weight="700" fill="#111">Take part</text>
+    <text x="335" y="128" font-size="14" fill="#4b4b4b">T2.1 · data conversion</text>
+    <rect x="331" y="144" width="238" height="96" rx="10" fill="#ffffff" stroke="#ececec"/>
+    <text x="343" y="170" font-size="15" font-style="italic" fill="#111">"How can I take a bigger</text>
+    <text x="343" y="192" font-size="15" font-style="italic" fill="#111">part in the decisions and</text>
+    <text x="343" y="214" font-size="15" font-style="italic" fill="#111">the execution?"</text>
+    <text x="335" y="272" font-size="15" font-weight="700" fill="#c9430c">What changed</text>
+    <text x="335" y="296" font-size="15" fill="#111">Agent offered 6 modes; I took</text>
+    <text x="335" y="318" font-size="15" fill="#111">three: it proposes options</text>
+    <text x="335" y="340" font-size="15" fill="#111">and I choose, it pauses each</text>
+    <text x="335" y="362" font-size="15" fill="#111">step, and shows me the diff</text>
+    <text x="335" y="384" font-size="15" fill="#111">before every commit.</text>
+  </g>
+  <g>
+    <circle cx="740" cy="40" r="16" fill="#c9430c"/><text x="740" y="46" text-anchor="middle" font-size="17" font-weight="700" fill="#fff">3</text>
+    <rect x="610" y="74" width="270" height="360" rx="14" fill="#fafafa" stroke="#4b4b4b" stroke-width="2"/>
+    <text x="630" y="106" font-size="18" font-weight="700" fill="#111">Challenge</text>
+    <text x="630" y="128" font-size="14" fill="#4b4b4b">T2.3–T4.4 · model, cascade</text>
+    <rect x="626" y="144" width="238" height="96" rx="10" fill="#ffffff" stroke="#ececec"/>
+    <text x="638" y="170" font-size="15" font-style="italic" fill="#111">"Why is data_prep outside</text>
+    <text x="638" y="192" font-size="15" font-style="italic" fill="#111">src? What do good</text>
+    <text x="638" y="214" font-size="15" font-style="italic" fill="#111">practices say?"</text>
+    <text x="630" y="272" font-size="15" font-weight="700" fill="#c9430c">What changed</text>
+    <text x="630" y="296" font-size="15" fill="#111">I question structure and</text>
+    <text x="630" y="318" font-size="15" fill="#111">results: modeling/ (ADR-0007),</text>
+    <text x="630" y="340" font-size="15" fill="#111">"don't adjust the gold to the</text>
+    <text x="630" y="362" font-size="15" fill="#111">model", recall gap accepted</text>
+    <text x="630" y="384" font-size="15" fill="#111">openly instead of hidden.</text>
+  </g>
+  <g>
+    <circle cx="1035" cy="40" r="16" fill="#c9430c"/><text x="1035" y="46" text-anchor="middle" font-size="17" font-weight="700" fill="#fff">4</text>
+    <rect x="905" y="74" width="275" height="360" rx="14" fill="#ffe7da" stroke="#c9430c" stroke-width="2.5"/>
+    <text x="925" y="106" font-size="18" font-weight="700" fill="#111">Delegate, then verify</text>
+    <text x="925" y="128" font-size="14" fill="#4b4b4b">T4.2–T5.2 · login, review, docs</text>
+    <rect x="921" y="144" width="243" height="96" rx="10" fill="#ffffff" stroke="#ececec"/>
+    <text x="933" y="170" font-size="15" font-style="italic" fill="#111">"Is there anything that</text>
+    <text x="933" y="192" font-size="15" font-style="italic" fill="#111">blocks closing the PR, or</text>
+    <text x="933" y="214" font-size="15" font-style="italic" fill="#111">a severe risk?"</text>
+    <text x="925" y="272" font-size="15" font-weight="700" fill="#c9430c">What changed</text>
+    <text x="925" y="296" font-size="15" fill="#111">/security-review before PRs;</text>
+    <text x="925" y="318" font-size="15" fill="#111">the agent runs the manual</text>
+    <text x="925" y="340" font-size="15" fill="#111">checks; I triage the findings</text>
+    <text x="925" y="362" font-size="15" fill="#111">and still merge every PR</text>
+    <text x="925" y="384" font-size="15" fill="#111">myself.</text>
+  </g>
+</svg>
