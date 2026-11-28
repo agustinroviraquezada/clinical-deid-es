@@ -438,21 +438,21 @@ aws iam get-role-policy --role-name clinical-deid-lambda --policy-name bedrock-i
 
 Environment variables belong to the function's configuration, not to the image, so
 `deploy.yml` (which only updates the code) keeps them. **`--environment` replaces all
-variables**, so always pass the full set. The values shown are the defaults of design §10:
+variables**, so always pass the full set. Since T4.2 the set includes the two login secrets
+(section 9). An inline `Variables={LLM_ENABLED=true,...}` would delete them and lock every
+user out. Use the JSON file of section 9 instead:
 
-```bash
-aws lambda update-function-configuration --function-name clinical-deid \
-  --environment 'Variables={LLM_ENABLED=true,MAX_LLM_SENTENCES=8,LLM_TIME_BUDGET_S=45}' \
-  --query 'Environment.Variables'
-aws lambda wait function-updated --function-name clinical-deid
-```
+1. Add the LLM variables to the file next to the two secrets. The values are the defaults of
+   design §10: `"LLM_ENABLED": "true"`, `"MAX_LLM_SENTENCES": "8"`, `"LLM_TIME_BUDGET_S": "45"`.
+2. Apply the file with the same command as in section 9.2.
+3. Delete the file.
 
 `LLM_TIME_BUDGET_S` stops new LLM calls once 45 s have passed in one request (the remaining
 uncertain entities are masked). The worst case, 45 s + one call (12 s) + a cold start, stays
 under the 120 s timeout.
 
-To go back to model only (for example if costs or errors rise), run the same command with
-`LLM_ENABLED=false`. It takes effect on the next request; no deployment is needed.
+To go back to model only (for example if costs or errors rise), apply the same file with
+`LLM_ENABLED` set to `"false"`, keeping the two secrets. It takes effect on the next request; no deployment is needed.
 
 ### 8.5 Check the cascade at the URL
 
@@ -494,6 +494,112 @@ aws logs filter-log-events --log-group-name /aws/lambda/clinical-deid \
 Bedrock itself keeps no prompts: model invocation logging is off by default in the account
 (Bedrock → Settings). Leave it off.
 
+## 9. Demo login secrets (T4.2)
+
+The login (design §7, ADR-0006) needs two environment variables on the function. Without them
+every login fails (fail closed), so set them before the URL is opened.
+
+- `DEMO_PASSWORD_HASH`: the argon2 hash of the demo password. The password itself is never stored.
+- `SESSION_SECRET`: a random key that signs the session cookie. Anyone who knows it can forge a
+  session, so it is as secret as the password.
+
+Neither value ever goes in the repo, the chat or the shell history. Keep the password in a
+password manager: the README and the submission form need it.
+
+### 9.1 Generate the values
+
+From the repo root (a relative path fails from any other folder):
+
+```bash
+cd "/g/Mi unidad/BrAIn/TFM/clinical-deid-es"
+uv run python scripts/hash_password.py   # asks twice, no echo; prints $argon2id$...
+openssl rand -hex 32                     # 64 hex characters: the SESSION_SECRET
+```
+
+### 9.2 Set them on the function
+
+**`--environment` replaces every variable.** First list the names already set (read-only).
+Every name listed must go in the file too, or it is deleted. `null` means there are none:
+
+```bash
+aws lambda get-function-configuration --function-name clinical-deid \
+  --query 'keys(Environment.Variables)'
+```
+
+Write the values to a temporary JSON file **outside the repo** with an editor, not with `echo`,
+so they stay out of the shell history. The `$` signs in the hash also need no escaping in a file:
+
+```bash
+notepad ~/lambda-env.json
+```
+
+```json
+{
+  "Variables": {
+    "DEMO_PASSWORD_HASH": "<the $argon2id$... line>",
+    "SESSION_SECRET": "<the 64 hex characters>"
+  }
+}
+```
+
+Apply the file, then delete it at once:
+- The AWS CLI is a Windows program, so it needs a Windows path after `file://`. It does not find a
+  Git Bash path (`file://$HOME/...` → `/c/Users/...`).
+- The `--query` prints only the variable **names**. Without it, the CLI would print the secrets.
+
+```bash
+aws lambda update-function-configuration --function-name clinical-deid \
+  --environment file://C:/Users/<your user>/lambda-env.json \
+  --query '{Status: LastUpdateStatus, Variables: keys(Environment.Variables)}'
+rm ~/lambda-env.json
+aws lambda wait function-updated --function-name clinical-deid
+```
+
+To change the password or revoke every session (for example after the grade or if a cookie
+leaks), repeat 9.1–9.2 with a new hash or a new `SESSION_SECRET`.
+
+### 9.3 Check the login at the URL
+
+While the URL is still `AWS_IAM`, sign the requests with awscurl as in step 6.
+
+```bash
+export FUNCTION_URL=$(aws lambda get-function-url-config --function-name clinical-deid \
+  --query FunctionUrl --output text)
+eval "$(aws configure export-credentials --profile "$AWS_PROFILE" --format env)"
+
+# Without a session: expected {"detail":"Not authenticated"}
+uvx awscurl==0.45 --service lambda --region "$AWS_REGION" -X POST \
+  -H 'Content-Type: application/json' -d '{"text":"Hola"}' "${FUNCTION_URL}api/deidentify"; echo
+```
+
+Run this line **on its own** and type the password. If it is pasted together with the following
+lines, `read` takes the next pasted line as the password:
+
+```bash
+read -rs -p "Demo password: " PW; echo
+```
+
+```bash
+uvx awscurl==0.45 --service lambda --region "$AWS_REGION" -X POST -i \
+  -H 'Content-Type: application/json' \
+  -d "{\"username\":\"demo\",\"password\":\"$PW\"}" "${FUNCTION_URL}api/login" \
+  | grep -i -E 'HTTP/|set-cookie|status'
+unset PW AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_CREDENTIAL_EXPIRATION
+```
+
+Expected output:
+- `{"status":"ok"}`.
+- `Set-Cookie: deid_session=…; HttpOnly; Max-Age=3600; Path=/; SameSite=strict; Secure`.
+- The security headers next to them (CSP, `x-frame-options: DENY`, HSTS).
+
+Other cases:
+- A password with `"` or `\` breaks this JSON. Test such a password from the web page instead.
+- Five wrong passwords lock the login for 15 minutes (429).
+
+**Done on 28 Nov 2026:** both secrets were set (the function had no variables before) and the check
+above passed. T5.4 does **not** need to repeat this section. It only switches the URL to `NONE` and
+retests the login from the public URL, without awscurl.
+
 ## Troubleshooting (seen during the first deployment)
 
 | Error | Cause | Fix |
@@ -505,10 +611,14 @@ Bedrock itself keeps no prompts: model invocation logging is off by default in t
 | `curl` prints `000` | `FUNCTION_URL` is empty (new terminal) | Repeat the shell setup and the `export FUNCTION_URL=…` line |
 | `ExpiredToken` / expired session | The `aws login` session ended | `aws login --profile deid-admin` |
 | Path like `C:/Program Files/Git/aws/lambda/...` | Git Bash path conversion | `export MSYS_NO_PATHCONV=1` |
+| `Unable to load param file file:///c/Users/...` | The Windows AWS CLI does not understand Git Bash paths | Use `file://C:/Users/<user>/...` (section 9.2) |
+| `can't open file '.../scripts/hash_password.py'` | Command run outside the repo root | `cd` to the repo root first (section 9.1) |
+| Every login returns 401 after a configuration change | An `--environment` update without the two secrets removed them | Set the full set again from the JSON file (section 9.2) |
 
 ## Later lifecycle (design §9)
 
-- **27 Nov:** switch the URL to `--auth-type NONE` (`aws lambda update-function-url-config`)
-  together with the app login (ADR-0006).
+- **27 Nov (T5.4):** switch the URL to `--auth-type NONE` (`aws lambda update-function-url-config`)
+  together with the app login (ADR-0006). The login secrets are already set (section 9, done 28 Nov);
+  only check that `keys(Environment.Variables)` still lists both before opening.
 - **After the grade:** delete the function, the image repository, the log group, both roles
   (with their inline policies), the OIDC provider and the GitHub environment.
