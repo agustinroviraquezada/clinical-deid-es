@@ -36,7 +36,7 @@ health data.
 | FR-05 | Cascade: entities with confidence < threshold are sent to the LLM, which **confirms or rejects** them and assigns a category. It does not search for new entities | DECIDED |
 | FR-06 | Only the **sentence** containing the uncertain entity is sent to the LLM, never the document | DECIDED |
 | FR-07 | At most N sentences per document go to the LLM; beyond N, the remaining ones are masked by default (conservative) | DECIDED (N = 8, ADR-0009) |
-| FR-08 | Login with a single demo account; test username and password in the README | DECIDED |
+| FR-08 | Login with a single demo account; test username in the README, password shared privately with the evaluator (ADR-0012) | DECIDED |
 | FR-09 | Visible privacy notice before processing | DECIDED |
 | FR-10 | Mandatory "use at my own risk" checkbox | PROPOSED |
 | FR-11 | "Comparison" tab with **precomputed** results of the three configurations on the examples | DECIDED |

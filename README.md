@@ -152,6 +152,7 @@ MEDDOCAN test set (250 documents, 5,661 entities). Full reports in
 - URL: see [Links](#links)
 - Username: `demo`
 - Password: shared privately with the evaluator, not published in this public repository
+  ([ADR-0012](docs/adr/0012-demo-password-shared-privately.md))
 
 ## Links
 

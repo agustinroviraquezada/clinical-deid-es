@@ -504,7 +504,7 @@ every login fails (fail closed), so set them before the URL is opened.
   session, so it is as secret as the password.
 
 Neither value ever goes in the repo, the chat or the shell history. Keep the password in a
-password manager: the README and the submission form need it.
+password manager: the evaluator receives it privately with the submission (ADR-0012), never in the README.
 
 ### 9.1 Generate the values
 
