@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 460" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+  <title>Architecture: browser, FastAPI on AWS Lambda, cascade core with ports, NER and Bedrock adapters</title>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#4b4b4b"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="460" fill="#ffffff"/>
+
+  <!-- Browser -->
+  <rect x="20" y="170" width="170" height="110" rx="14" fill="#fafafa" stroke="#4b4b4b" stroke-width="2"/>
+  <text x="105" y="215" text-anchor="middle" font-size="22" font-weight="700" fill="#111">Browser</text>
+  <text x="105" y="245" text-anchor="middle" font-size="16" fill="#4b4b4b">HTML + JS</text>
+  <text x="105" y="267" text-anchor="middle" font-size="16" fill="#4b4b4b">textContent only</text>
+
+  <line x1="190" y1="225" x2="262" y2="225" stroke="#4b4b4b" stroke-width="2.5" marker-end="url(#a)" marker-start="url(#a)"/>
+  <text x="226" y="205" text-anchor="middle" font-size="14" fill="#4b4b4b">HTTPS</text>
+  <text x="226" y="250" text-anchor="middle" font-size="14" fill="#4b4b4b">cookie</text>
+
+  <!-- Lambda boundary -->
+  <rect x="268" y="20" width="640" height="420" rx="18" fill="#fff6f0" stroke="#f25c19" stroke-width="2.5" stroke-dasharray="10 6"/>
+  <text x="290" y="52" font-size="18" font-weight="700" fill="#c9430c">AWS Lambda · container image · eu-west-1</text>
+
+  <!-- FastAPI -->
+  <rect x="290" y="165" width="150" height="120" rx="14" fill="#ffffff" stroke="#111" stroke-width="2"/>
+  <text x="365" y="210" text-anchor="middle" font-size="20" font-weight="700" fill="#111">FastAPI</text>
+  <text x="365" y="238" text-anchor="middle" font-size="15" fill="#4b4b4b">login, limits,</text>
+  <text x="365" y="258" text-anchor="middle" font-size="15" fill="#4b4b4b">headers, CSP</text>
+
+  <line x1="440" y1="225" x2="488" y2="225" stroke="#4b4b4b" stroke-width="2.5" marker-end="url(#a)"/>
+
+  <!-- Core -->
+  <rect x="494" y="80" width="200" height="290" rx="14" fill="#ffe7da" stroke="#c9430c" stroke-width="2.5"/>
+  <text x="594" y="118" text-anchor="middle" font-size="20" font-weight="700" fill="#111">Cascade core</text>
+  <text x="594" y="142" text-anchor="middle" font-size="14" fill="#4b4b4b">domain + cascade.py</text>
+  <text x="594" y="162" text-anchor="middle" font-size="14" fill="#4b4b4b">no external imports</text>
+  <rect x="514" y="190" width="160" height="44" rx="10" fill="#ffffff" stroke="#c9430c" stroke-width="1.5"/>
+  <text x="594" y="218" text-anchor="middle" font-size="15" fill="#111">EntityDetector port</text>
+  <rect x="514" y="250" width="160" height="44" rx="10" fill="#ffffff" stroke="#c9430c" stroke-width="1.5"/>
+  <text x="594" y="278" text-anchor="middle" font-size="15" fill="#111">LLMVerifier port</text>
+  <rect x="514" y="310" width="160" height="44" rx="10" fill="#ffffff" stroke="#c9430c" stroke-width="1.5"/>
+  <text x="594" y="338" text-anchor="middle" font-size="15" fill="#111">Masker</text>
+
+  <!-- NER adapter -->
+  <rect x="728" y="150" width="160" height="100" rx="14" fill="#ffffff" stroke="#111" stroke-width="2"/>
+  <text x="808" y="188" text-anchor="middle" font-size="18" font-weight="700" fill="#111">NER adapter</text>
+  <text x="808" y="212" text-anchor="middle" font-size="14" fill="#4b4b4b">RoBERTa clinical</text>
+  <text x="808" y="232" text-anchor="middle" font-size="14" fill="#4b4b4b">fine-tuned, in image</text>
+  <line x1="674" y1="212" x2="722" y2="205" stroke="#4b4b4b" stroke-width="2.5" marker-end="url(#a)"/>
+
+  <!-- Bedrock adapter (inside) -->
+  <rect x="728" y="270" width="160" height="100" rx="14" fill="#ffffff" stroke="#111" stroke-width="2"/>
+  <text x="808" y="308" text-anchor="middle" font-size="18" font-weight="700" fill="#111">LLM adapter</text>
+  <text x="808" y="332" text-anchor="middle" font-size="14" fill="#4b4b4b">schema-validated</text>
+  <text x="808" y="352" text-anchor="middle" font-size="14" fill="#4b4b4b">error → mask</text>
+  <line x1="674" y1="272" x2="722" y2="300" stroke="#4b4b4b" stroke-width="2.5" marker-end="url(#a)"/>
+
+  <!-- Bedrock (outside) -->
+  <line x1="888" y1="320" x2="968" y2="320" stroke="#c9430c" stroke-width="2.5" marker-end="url(#a)"/>
+  <text x="928" y="300" text-anchor="middle" font-size="14" fill="#c9430c">1 sentence</text>
+  <rect x="974" y="260" width="206" height="120" rx="14" fill="#fafafa" stroke="#4b4b4b" stroke-width="2"/>
+  <text x="1077" y="300" text-anchor="middle" font-size="18" font-weight="700" fill="#111">Amazon Bedrock</text>
+  <text x="1077" y="326" text-anchor="middle" font-size="15" fill="#4b4b4b">Claude Haiku 4.5</text>
+  <text x="1077" y="348" text-anchor="middle" font-size="15" fill="#4b4b4b">EU inference profile</text>
+
+  <!-- Hub -->
+  <rect x="974" y="80" width="206" height="110" rx="14" fill="#fafafa" stroke="#4b4b4b" stroke-width="2"/>
+  <text x="1077" y="120" text-anchor="middle" font-size="18" font-weight="700" fill="#111">Hugging Face Hub</text>
+  <text x="1077" y="146" text-anchor="middle" font-size="15" fill="#4b4b4b">pinned revision,</text>
+  <text x="1077" y="168" text-anchor="middle" font-size="15" fill="#4b4b4b">baked in at build</text>
+  <line x1="974" y1="150" x2="894" y2="185" stroke="#4b4b4b" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#a)"/>
+</svg>

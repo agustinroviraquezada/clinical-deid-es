@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 380" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+  <title>Before and after: a synthetic Spanish note with personal data highlighted, and the same note with each item replaced by its category</title>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#c9430c"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="380" fill="#ffffff"/>
+
+  <!-- Before -->
+  <rect x="20" y="30" width="520" height="320" rx="16" fill="#fafafa" stroke="#4b4b4b" stroke-width="2"/>
+  <circle cx="46" cy="56" r="7" fill="#e0e0e0"/><circle cx="68" cy="56" r="7" fill="#e0e0e0"/><circle cx="90" cy="56" r="7" fill="#e0e0e0"/>
+  <text x="520" y="62" text-anchor="end" font-size="15" font-weight="700" fill="#8a1c2b">BEFORE · 7 items of personal data</text>
+  <g font-family="Consolas, Cascadia Mono, monospace" font-size="19" fill="#111">
+    <rect x="135" y="98" width="163" height="30" rx="6" fill="#fde2e4"/>
+    <rect x="344" y="98" width="79" height="30" rx="6" fill="#dcf4f7"/>
+    <rect x="156" y="140" width="110" height="30" rx="6" fill="#e2ecfd"/>
+    <rect x="334" y="140" width="100" height="30" rx="6" fill="#dff5ea"/>
+    <rect x="41" y="182" width="69" height="30" rx="6" fill="#dff5ea"/>
+    <rect x="125" y="182" width="69" height="30" rx="6" fill="#dff5ea"/>
+    <rect x="93" y="224" width="131" height="30" rx="6" fill="#efe4fb"/>
+    <rect x="156" y="266" width="163" height="30" rx="6" fill="#fde2e4"/>
+    <text x="44" y="120">Paciente Lucía Fernández, de 54 años,</text>
+    <text x="44" y="162">ingresó el 12/03/2025 en el H. Miguel</text>
+    <text x="44" y="204">Servet (Teruel) por disnea.</text>
+    <text x="44" y="246">NHC: 4400-2187-93.</text>
+    <text x="44" y="288">Firma: Dr. Ignacio Navarro.</text>
+  </g>
+
+  <line x1="552" y1="190" x2="642" y2="190" stroke="#c9430c" stroke-width="4" marker-end="url(#a)"/>
+  <text x="597" y="170" text-anchor="middle" font-size="15" font-weight="700" fill="#c9430c">cascade</text>
+
+  <!-- After -->
+  <rect x="660" y="30" width="520" height="320" rx="16" fill="#fff6f0" stroke="#f25c19" stroke-width="2.5"/>
+  <circle cx="686" cy="56" r="7" fill="#ffd0b8"/><circle cx="708" cy="56" r="7" fill="#ffd0b8"/><circle cx="730" cy="56" r="7" fill="#ffd0b8"/>
+  <text x="1160" y="62" text-anchor="end" font-size="15" font-weight="700" fill="#155e3b">AFTER · safe to paste into an LLM</text>
+  <g font-family="Consolas, Cascadia Mono, monospace" font-size="19" fill="#111">
+    <text x="684" y="120">Paciente <tspan fill="#c9430c" font-weight="700">[NAME]</tspan>, de <tspan fill="#c9430c" font-weight="700">[AGE]</tspan>,</text>
+    <text x="684" y="162">ingresó el <tspan fill="#c9430c" font-weight="700">[DATE]</tspan> en el</text>
+    <text x="684" y="204"><tspan fill="#c9430c" font-weight="700">[LOCATION]</tspan> (<tspan fill="#c9430c" font-weight="700">[LOCATION]</tspan>)</text>
+    <text x="684" y="246">por disnea. NHC: <tspan fill="#c9430c" font-weight="700">[ID]</tspan>.</text>
+    <text x="684" y="288">Firma: Dr. <tspan fill="#c9430c" font-weight="700">[NAME]</tspan>.</text>
+  </g>
+  <text x="684" y="330" font-size="14" fill="#4b4b4b">Clinical content stays: "disnea" is kept.</text>
+</svg>

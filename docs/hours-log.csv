@@ -21,3 +21,4 @@ date,hours,task,summary
 2026-11-27,2.0,T4.4,5 synthetic demo notes with hand-made gold and precomputed model-only results (F1 0.70)
 2026-11-28,2.0,T4.5,"Security review: fixed deploy smoke test (401 since T4.2), CI actions pinned by SHA, MAX_LLM_SENTENCES cap, report and slide draft"
 2026-11-28,2.0,T5.1,"Final README, extended model card with --card-only, Apache-2.0 LICENSE + NOTICE, ADR-0012, model made public"
+2026-11-28,2.0,T5.2,"Final Marp deck (22 slides, SVG diagrams, AI-assisted workflow section from session history), PDF, README link"

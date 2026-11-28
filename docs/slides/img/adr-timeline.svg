@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 440" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+  <title>Timeline of the 12 ADRs: six decided before coding, six triggered by findings during development, each with what triggered it</title>
+  <rect width="1200" height="440" fill="#ffffff"/>
+
+  <!-- axis -->
+  <line x1="30" y1="210" x2="1170" y2="210" stroke="#4b4b4b" stroke-width="3"/>
+  <text x="30" y="240" font-size="14" fill="#4b4b4b">17 Oct</text>
+  <text x="1170" y="240" text-anchor="end" font-size="14" fill="#4b4b4b">28 Nov</text>
+
+  <!-- planned block -->
+  <rect x="30" y="30" width="300" height="160" rx="14" fill="#fafafa" stroke="#4b4b4b" stroke-width="2"/>
+  <text x="50" y="62" font-size="17" font-weight="700" fill="#111">Before coding · 17–18 Oct</text>
+  <g font-size="15" fill="#111">
+    <text x="50" y="92">0001 Record decisions as ADRs</text>
+    <text x="50" y="114">0002 Ports and adapters</text>
+    <text x="50" y="136">0003 MEDDOCAN from Zenodo</text>
+    <text x="50" y="158">0004 Cascade, minimal fragments</text>
+    <text x="50" y="180">0005 Lambda container · 0006 Login</text>
+  </g>
+  <circle cx="60" cy="210" r="10" fill="#4b4b4b"/>
+
+  <!-- triggered ADRs -->
+  <g font-size="14">
+    <circle cx="420" cy="210" r="10" fill="#c9430c"/>
+    <rect x="350" y="262" width="200" height="150" rx="12" fill="#fff6f0" stroke="#f25c19" stroke-width="2"/>
+    <text x="364" y="288" font-size="15" font-weight="700" fill="#111">0007 · 14 Nov</text>
+    <text x="364" y="310" fill="#111">modeling/ folder</text>
+    <text x="364" y="338" fill="#c9430c" font-weight="700">Trigger:</text>
+    <text x="364" y="358" fill="#4b4b4b">my question "why is</text>
+    <text x="364" y="378" fill="#4b4b4b">data_prep outside src?"</text>
+    <line x1="420" y1="220" x2="420" y2="262" stroke="#c9430c" stroke-width="2"/>
+
+    <circle cx="560" cy="210" r="10" fill="#c9430c"/>
+    <rect x="450" y="30" width="220" height="150" rx="12" fill="#fff6f0" stroke="#f25c19" stroke-width="2"/>
+    <text x="464" y="56" font-size="15" font-weight="700" fill="#111">0008 · 18 Nov</text>
+    <text x="464" y="78" fill="#111">Python 3.12 runtime</text>
+    <text x="464" y="106" fill="#c9430c" font-weight="700">Trigger:</text>
+    <text x="464" y="126" fill="#4b4b4b">Lambda 3.11 base image</text>
+    <text x="464" y="146" fill="#4b4b4b">too old for torch wheels</text>
+    <line x1="560" y1="180" x2="560" y2="200" stroke="#c9430c" stroke-width="2"/>
+
+    <circle cx="640" cy="210" r="10" fill="#c9430c"/>
+    <rect x="570" y="262" width="200" height="150" rx="12" fill="#fff6f0" stroke="#f25c19" stroke-width="2"/>
+    <text x="584" y="288" font-size="15" font-weight="700" fill="#111">0009 · 19 Nov</text>
+    <text x="584" y="310" fill="#111">Threshold band rule</text>
+    <text x="584" y="338" fill="#c9430c" font-weight="700">Trigger:</text>
+    <text x="584" y="358" fill="#4b4b4b">design rule gave t = 0</text>
+    <text x="584" y="378" fill="#4b4b4b">on real dev data</text>
+    <line x1="640" y1="220" x2="640" y2="262" stroke="#c9430c" stroke-width="2"/>
+
+    <circle cx="790" cy="210" r="10" fill="#c9430c"/>
+    <rect x="690" y="30" width="200" height="150" rx="12" fill="#fff6f0" stroke="#f25c19" stroke-width="2"/>
+    <text x="704" y="56" font-size="15" font-weight="700" fill="#111">0010 · 23 Nov</text>
+    <text x="704" y="78" fill="#111">Deadline → 29 Nov</text>
+    <text x="704" y="106" fill="#c9430c" font-weight="700">Trigger:</text>
+    <text x="704" y="126" fill="#4b4b4b">school moved the date;</text>
+    <text x="704" y="146" fill="#4b4b4b">plan and checks updated</text>
+    <line x1="790" y1="180" x2="790" y2="200" stroke="#c9430c" stroke-width="2"/>
+
+    <circle cx="860" cy="210" r="10" fill="#c9430c"/>
+    <rect x="790" y="262" width="200" height="150" rx="12" fill="#fff6f0" stroke="#f25c19" stroke-width="2"/>
+    <text x="804" y="288" font-size="15" font-weight="700" fill="#111">0011 · 25 Nov</text>
+    <text x="804" y="310" fill="#111">LLM-only baseline</text>
+    <text x="804" y="338" fill="#c9430c" font-weight="700">Trigger:</text>
+    <text x="804" y="358" fill="#4b4b4b">spec gap: "LLM only" vs</text>
+    <text x="804" y="378" fill="#4b4b4b">FR-06 "never the document"</text>
+    <line x1="860" y1="220" x2="860" y2="262" stroke="#c9430c" stroke-width="2"/>
+
+    <circle cx="1110" cy="210" r="10" fill="#c9430c"/>
+    <rect x="950" y="30" width="230" height="150" rx="12" fill="#fff6f0" stroke="#f25c19" stroke-width="2"/>
+    <text x="964" y="56" font-size="15" font-weight="700" fill="#111">0012 · 28 Nov</text>
+    <text x="964" y="78" fill="#111">Password shared privately</text>
+    <text x="964" y="106" fill="#c9430c" font-weight="700">Trigger:</text>
+    <text x="964" y="126" fill="#4b4b4b">public repo: a README</text>
+    <text x="964" y="146" fill="#4b4b4b">password would leak</text>
+    <line x1="1110" y1="180" x2="1110" y2="200" stroke="#c9430c" stroke-width="2"/>
+  </g>
+
+  <text x="1180" y="300" text-anchor="end" font-size="15" font-weight="700" fill="#111">Every ADR:</text>
+  <text x="1180" y="322" text-anchor="end" font-size="14" fill="#4b4b4b">context · decision ·</text>
+  <text x="1180" y="342" text-anchor="end" font-size="14" fill="#4b4b4b">alternatives · consequences</text>
+  <text x="1180" y="370" text-anchor="end" font-size="14" fill="#c9430c">+ spec updated in the</text>
+  <text x="1180" y="390" text-anchor="end" font-size="14" fill="#c9430c">same PR</text>
+</svg>

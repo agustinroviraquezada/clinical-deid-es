@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 430" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+  <title>Cascade decision flow: confident entities are masked, uncertain ones are checked by the LLM, every failure masks</title>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#4b4b4b"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="430" fill="#ffffff"/>
+
+  <!-- Note -->
+  <rect x="20" y="170" width="150" height="80" rx="14" fill="#fafafa" stroke="#4b4b4b" stroke-width="2"/>
+  <text x="95" y="205" text-anchor="middle" font-size="18" font-weight="700" fill="#111">Clinical note</text>
+  <text x="95" y="229" text-anchor="middle" font-size="14" fill="#4b4b4b">≤ 10,000 chars</text>
+  <line x1="170" y1="210" x2="208" y2="210" stroke="#4b4b4b" stroke-width="2.5" marker-end="url(#a)"/>
+
+  <!-- NER -->
+  <rect x="214" y="170" width="150" height="80" rx="14" fill="#ffffff" stroke="#111" stroke-width="2"/>
+  <text x="289" y="205" text-anchor="middle" font-size="18" font-weight="700" fill="#111">NER model</text>
+  <text x="289" y="229" text-anchor="middle" font-size="14" fill="#4b4b4b">entities + confidence</text>
+  <line x1="364" y1="210" x2="402" y2="210" stroke="#4b4b4b" stroke-width="2.5" marker-end="url(#a)"/>
+
+  <!-- Decision 1 -->
+  <polygon points="490,140 580,210 490,280 400,210" fill="#ffe7da" stroke="#c9430c" stroke-width="2.5"/>
+  <text x="490" y="205" text-anchor="middle" font-size="16" font-weight="700" fill="#111">confidence</text>
+  <text x="490" y="226" text-anchor="middle" font-size="16" font-weight="700" fill="#111">≥ 0.96?</text>
+
+  <!-- yes path to Mask (top) -->
+  <path d="M490 140 V60 H1020" fill="none" stroke="#4b4b4b" stroke-width="2.5" marker-end="url(#a)"/>
+  <text x="505" y="105" font-size="15" font-weight="700" fill="#155e3b">yes</text>
+
+  <!-- no path -->
+  <line x1="580" y1="210" x2="628" y2="210" stroke="#4b4b4b" stroke-width="2.5" marker-end="url(#a)"/>
+  <text x="590" y="198" font-size="15" font-weight="700" fill="#8a1c2b">no</text>
+
+  <!-- Decision 2 -->
+  <polygon points="724,140 820,210 724,280 628,210" fill="#ffe7da" stroke="#c9430c" stroke-width="2.5"/>
+  <text x="724" y="200" text-anchor="middle" font-size="15" font-weight="700" fill="#111">under N = 8</text>
+  <text x="724" y="220" text-anchor="middle" font-size="15" font-weight="700" fill="#111">and time</text>
+  <text x="724" y="240" text-anchor="middle" font-size="15" font-weight="700" fill="#111">budget?</text>
+
+  <!-- no -> mask -->
+  <path d="M724 280 V380 H1020" fill="none" stroke="#4b4b4b" stroke-width="2.5" marker-end="url(#a)"/>
+  <text x="738" y="330" font-size="15" font-weight="700" fill="#8a1c2b">no</text>
+
+  <line x1="820" y1="210" x2="858" y2="210" stroke="#4b4b4b" stroke-width="2.5" marker-end="url(#a)"/>
+  <text x="826" y="198" font-size="15" font-weight="700" fill="#155e3b">yes</text>
+
+  <!-- LLM -->
+  <rect x="864" y="165" width="150" height="90" rx="14" fill="#ffffff" stroke="#111" stroke-width="2"/>
+  <text x="939" y="200" text-anchor="middle" font-size="17" font-weight="700" fill="#111">LLM checks</text>
+  <text x="939" y="222" text-anchor="middle" font-size="14" fill="#4b4b4b">one sentence,</text>
+  <text x="939" y="241" text-anchor="middle" font-size="14" fill="#4b4b4b">JSON verdict</text>
+
+  <!-- Outcomes -->
+  <rect x="1026" y="25" width="160" height="70" rx="14" fill="#c9430c"/>
+  <text x="1106" y="58" text-anchor="middle" font-size="19" font-weight="700" fill="#ffffff">[MASK]</text>
+  <text x="1106" y="80" text-anchor="middle" font-size="13" fill="#ffffff">personal data</text>
+
+  <rect x="1026" y="175" width="160" height="70" rx="14" fill="#fafafa" stroke="#4b4b4b" stroke-width="2"/>
+  <text x="1106" y="208" text-anchor="middle" font-size="18" font-weight="700" fill="#111">keep text</text>
+  <text x="1106" y="230" text-anchor="middle" font-size="13" fill="#4b4b4b">not personal</text>
+
+  <rect x="1026" y="345" width="160" height="70" rx="14" fill="#c9430c"/>
+  <text x="1106" y="378" text-anchor="middle" font-size="19" font-weight="700" fill="#ffffff">[MASK]</text>
+  <text x="1106" y="400" text-anchor="middle" font-size="13" fill="#ffffff">fail-safe</text>
+
+  <path d="M939 165 V110 H1080 V100" fill="none" stroke="#4b4b4b" stroke-width="2" marker-end="url(#a)"/>
+  <text x="948" y="132" font-size="13" fill="#4b4b4b">personal</text>
+  <line x1="1014" y1="210" x2="1020" y2="210" stroke="#4b4b4b" stroke-width="2" marker-end="url(#a)"/>
+  <path d="M939 255 V320 H1080 V340" fill="none" stroke="#4b4b4b" stroke-width="2" marker-end="url(#a)"/>
+  <text x="948" y="300" font-size="13" fill="#8a1c2b">error · timeout · bad schema</text>
+</svg>

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 430" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+  <title>A real task from tasks.md (T3.1) annotated with how each field steers the agent</title>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#c9430c"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="430" fill="#ffffff"/>
+
+  <!-- task card -->
+  <rect x="20" y="20" width="640" height="390" rx="16" fill="#fafafa" stroke="#4b4b4b" stroke-width="2"/>
+  <g font-family="Consolas, Cascadia Mono, monospace" font-size="18" fill="#111">
+    <text x="44" y="62" font-weight="700">### T3.1 · Per-entity confidence</text>
+    <text x="44" y="88" font-weight="700">    and threshold on dev</text>
+    <text x="44" y="136">- Hours: <tspan fill="#c9430c" font-weight="700">2</tspan></text>
+    <text x="44" y="170">- Labels: cascade</text>
+    <text x="44" y="204">- Spec: <tspan fill="#c9430c" font-weight="700">FR-05, design §3</tspan></text>
+    <text x="44" y="238">- Done when:</text>
+    <text x="64" y="270" fill="#4b4b4b">confidence = mean token probability;</text>
+    <text x="64" y="298" fill="#4b4b4b">recall/precision curve per threshold</text>
+    <text x="64" y="326" fill="#4b4b4b">on dev; threshold chosen and stored;</text>
+    <text x="64" y="354" fill="#4b4b4b">value of N decided from the</text>
+    <text x="64" y="382" fill="#4b4b4b">distribution of uncertain entities.</text>
+  </g>
+  <rect x="40" y="250" width="600" height="146" rx="10" fill="none" stroke="#c9430c" stroke-width="2.5"/>
+
+  <!-- annotations -->
+  <line x1="200" y1="130" x2="696" y2="62" stroke="#c9430c" stroke-width="2" marker-end="url(#a)"/>
+  <rect x="702" y="28" width="478" height="80" rx="12" fill="#fff6f0" stroke="#f25c19" stroke-width="2"/>
+  <text x="722" y="58" font-size="17" font-weight="700" fill="#111">Estimate vs reality</text>
+  <text x="722" y="84" font-size="15" fill="#4b4b4b">Planned 2 h, logged 3 h by /close-session (hours.py)</text>
+
+  <line x1="400" y1="200" x2="696" y2="170" stroke="#c9430c" stroke-width="2" marker-end="url(#a)"/>
+  <rect x="702" y="128" width="478" height="100" rx="12" fill="#fff6f0" stroke="#f25c19" stroke-width="2"/>
+  <text x="722" y="158" font-size="17" font-weight="700" fill="#111">The agent reads only what is linked</text>
+  <text x="722" y="184" font-size="15" fill="#4b4b4b">FR-05 and design §3 bound the work: no extra</text>
+  <text x="722" y="206" font-size="15" fill="#4b4b4b">features, nothing marked PENDING.</text>
+
+  <line x1="640" y1="320" x2="696" y2="310" stroke="#c9430c" stroke-width="2" marker-end="url(#a)"/>
+  <rect x="702" y="248" width="478" height="162" rx="12" fill="#ffe7da" stroke="#c9430c" stroke-width="2.5"/>
+  <text x="722" y="278" font-size="17" font-weight="700" fill="#111">"Done when" is the acceptance test</text>
+  <text x="722" y="304" font-size="15" fill="#111">The agent ended by checking each clause.</text>
+  <text x="722" y="328" font-size="15" fill="#111">Here the design rule gave t = 0 (useless): it</text>
+  <text x="722" y="350" font-size="15" fill="#111">stopped and offered three rules; I chose the</text>
+  <text x="722" y="372" font-size="15" fill="#111">per-band one after a night to understand it</text>
+  <text x="722" y="394" font-size="15" font-weight="700" fill="#c9430c">→ ADR-0009: t = 0.96, N = 8</text>
+</svg>

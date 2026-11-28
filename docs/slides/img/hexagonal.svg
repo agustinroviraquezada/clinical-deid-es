@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 470" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+  <title>Ports and adapters (hexagonal architecture): the domain and cascade at the centre, ports on the edge, adapters outside; dependencies point inwards</title>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#4b4b4b"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="470" fill="#ffffff"/>
+
+  <!-- Outer hexagon (ports) -->
+  <polygon points="600,20 800,125 800,345 600,450 400,345 400,125" fill="#fff6f0" stroke="#f25c19" stroke-width="3"/>
+  <!-- Inner hexagon (core) -->
+  <polygon points="600,120 705,175 705,295 600,350 495,295 495,175" fill="#ffe7da" stroke="#c9430c" stroke-width="2.5"/>
+  <text x="600" y="215" text-anchor="middle" font-size="21" font-weight="700" fill="#111">Core</text>
+  <text x="600" y="242" text-anchor="middle" font-size="15" fill="#111">domain/ · cascade.py</text>
+  <text x="600" y="264" text-anchor="middle" font-size="14" fill="#4b4b4b">pure Python</text>
+  <text x="600" y="284" text-anchor="middle" font-size="14" fill="#4b4b4b">no torch, boto3, fastapi</text>
+
+  <!-- Ports on the right edge -->
+  <rect x="738" y="150" width="150" height="40" rx="8" fill="#ffffff" stroke="#c9430c" stroke-width="2"/>
+  <text x="813" y="176" text-anchor="middle" font-size="15" font-weight="700" fill="#111">EntityDetector</text>
+  <rect x="738" y="280" width="150" height="40" rx="8" fill="#ffffff" stroke="#c9430c" stroke-width="2"/>
+  <text x="813" y="306" text-anchor="middle" font-size="15" font-weight="700" fill="#111">LLMVerifier</text>
+  <text x="813" y="230" text-anchor="middle" font-size="14" fill="#c9430c">ports = Protocols</text>
+  <text x="813" y="250" text-anchor="middle" font-size="14" fill="#c9430c">in ports.py</text>
+
+  <!-- Driven adapters (right) -->
+  <text x="1060" y="40" text-anchor="middle" font-size="16" font-weight="700" fill="#4b4b4b">DRIVEN ADAPTERS</text>
+  <rect x="960" y="60" width="210" height="60" rx="10" fill="#fafafa" stroke="#111" stroke-width="2"/>
+  <text x="1065" y="86" text-anchor="middle" font-size="16" font-weight="700" fill="#111">HF NER adapter</text>
+  <text x="1065" y="106" text-anchor="middle" font-size="13" fill="#4b4b4b">transformers + torch</text>
+  <rect x="960" y="140" width="210" height="60" rx="10" fill="#fafafa" stroke="#111" stroke-width="2"/>
+  <text x="1065" y="166" text-anchor="middle" font-size="16" font-weight="700" fill="#111">FakeDetector</text>
+  <text x="1065" y="186" text-anchor="middle" font-size="13" fill="#4b4b4b">tests: no model download</text>
+  <rect x="960" y="270" width="210" height="60" rx="10" fill="#fafafa" stroke="#111" stroke-width="2"/>
+  <text x="1065" y="296" text-anchor="middle" font-size="16" font-weight="700" fill="#111">Bedrock adapter</text>
+  <text x="1065" y="316" text-anchor="middle" font-size="13" fill="#4b4b4b">boto3 + JSON schema</text>
+  <rect x="960" y="350" width="210" height="60" rx="10" fill="#fafafa" stroke="#111" stroke-width="2"/>
+  <text x="1065" y="376" text-anchor="middle" font-size="16" font-weight="700" fill="#111">Fake / DisabledVerifier</text>
+  <text x="1065" y="396" text-anchor="middle" font-size="13" fill="#4b4b4b">tests · live while Bedrock is blocked</text>
+  <line x1="958" y1="90" x2="892" y2="162" stroke="#4b4b4b" stroke-width="2" marker-end="url(#a)"/>
+  <line x1="958" y1="170" x2="892" y2="172" stroke="#4b4b4b" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#a)"/>
+  <line x1="958" y1="300" x2="892" y2="300" stroke="#4b4b4b" stroke-width="2" marker-end="url(#a)"/>
+  <line x1="958" y1="380" x2="892" y2="310" stroke="#4b4b4b" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#a)"/>
+
+  <!-- Driving adapters (left) -->
+  <text x="160" y="40" text-anchor="middle" font-size="16" font-weight="700" fill="#4b4b4b">DRIVING ADAPTERS</text>
+  <rect x="40" y="150" width="240" height="64" rx="10" fill="#fafafa" stroke="#111" stroke-width="2"/>
+  <text x="160" y="178" text-anchor="middle" font-size="16" font-weight="700" fill="#111">FastAPI (api/)</text>
+  <text x="160" y="200" text-anchor="middle" font-size="13" fill="#4b4b4b">web page, login, limits</text>
+  <rect x="40" y="256" width="240" height="64" rx="10" fill="#fafafa" stroke="#111" stroke-width="2"/>
+  <text x="160" y="284" text-anchor="middle" font-size="16" font-weight="700" fill="#111">Evaluation (modeling/)</text>
+  <text x="160" y="306" text-anchor="middle" font-size="13" fill="#4b4b4b">offline, never deployed</text>
+  <line x1="280" y1="182" x2="488" y2="215" stroke="#4b4b4b" stroke-width="2" marker-end="url(#a)"/>
+  <line x1="280" y1="288" x2="488" y2="258" stroke="#4b4b4b" stroke-width="2" marker-end="url(#a)"/>
+
+  <text x="600" y="466" text-anchor="middle" font-size="15" fill="#4b4b4b">Every arrow points inwards: adapters depend on the core, never the other way round.</text>
+</svg>

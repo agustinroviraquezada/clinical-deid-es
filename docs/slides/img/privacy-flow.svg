@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+  <title>What leaves the service: the whole note stays in Lambda, at most 8 single sentences go to Bedrock, logs hold metadata only</title>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#4b4b4b"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="300" fill="#ffffff"/>
+
+  <rect x="20" y="95" width="180" height="110" rx="14" fill="#fafafa" stroke="#4b4b4b" stroke-width="2"/>
+  <text x="110" y="140" text-anchor="middle" font-size="20" font-weight="700" fill="#111">Browser</text>
+  <text x="110" y="168" text-anchor="middle" font-size="15" fill="#4b4b4b">whole note</text>
+  <line x1="200" y1="150" x2="288" y2="150" stroke="#4b4b4b" stroke-width="2.5" marker-end="url(#a)"/>
+
+  <rect x="294" y="30" width="470" height="240" rx="18" fill="#fff6f0" stroke="#f25c19" stroke-width="2.5" stroke-dasharray="10 6"/>
+  <text x="314" y="62" font-size="17" font-weight="700" fill="#c9430c">Lambda: the note never leaves, never stored</text>
+  <rect x="320" y="90" width="200" height="70" rx="12" fill="#ffffff" stroke="#111" stroke-width="2"/>
+  <text x="420" y="122" text-anchor="middle" font-size="17" font-weight="700" fill="#111">NER on the note</text>
+  <text x="420" y="144" text-anchor="middle" font-size="14" fill="#4b4b4b">in memory only</text>
+  <rect x="540" y="90" width="200" height="70" rx="12" fill="#ffffff" stroke="#111" stroke-width="2"/>
+  <text x="640" y="122" text-anchor="middle" font-size="17" font-weight="700" fill="#111">sentence splitter</text>
+  <text x="640" y="144" text-anchor="middle" font-size="14" fill="#4b4b4b">uncertain entity only</text>
+  <line x1="520" y1="125" x2="534" y2="125" stroke="#4b4b4b" stroke-width="2" marker-end="url(#a)"/>
+  <rect x="320" y="180" width="420" height="66" rx="12" fill="#ffffff" stroke="#4b4b4b" stroke-width="1.5"/>
+  <text x="530" y="208" text-anchor="middle" font-size="15" fill="#111">CloudWatch logs: lengths, counts, timings</text>
+  <text x="530" y="230" text-anchor="middle" font-size="15" font-weight="700" fill="#155e3b">no text (tested)</text>
+
+  <line x1="740" y1="125" x2="890" y2="125" stroke="#c9430c" stroke-width="3" marker-end="url(#a)"/>
+  <text x="815" y="105" text-anchor="middle" font-size="15" font-weight="700" fill="#c9430c">≤ 8 sentences</text>
+  <text x="815" y="152" text-anchor="middle" font-size="14" fill="#4b4b4b">delimited as data</text>
+
+  <rect x="896" y="70" width="284" height="150" rx="14" fill="#fafafa" stroke="#4b4b4b" stroke-width="2"/>
+  <text x="1038" y="108" text-anchor="middle" font-size="19" font-weight="700" fill="#111">Bedrock · EU profile</text>
+  <text x="1038" y="136" text-anchor="middle" font-size="15" fill="#4b4b4b">no storage, no training</text>
+  <text x="1038" y="160" text-anchor="middle" font-size="15" fill="#4b4b4b">answers only</text>
+  <text x="1038" y="182" text-anchor="middle" font-size="15" fill="#4b4b4b">personal / not personal</text>
+</svg>
