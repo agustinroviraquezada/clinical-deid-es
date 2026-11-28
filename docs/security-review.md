@@ -17,9 +17,9 @@ checked against `specs/design.md` §8 (NFR-06). Status: ✅ met · ⚠️ met wi
 | Input validation, errors without traces | ⚠️ | `extra=forbid`, `StrictStr`, 128-char credentials (`api/schemas.py`); generic 400 instead of FastAPI's 422 (which echoes input); generic 500 that logs only the exception type; `/docs` and `/openapi.json` off | **Accepted limit** A3 below |
 | Privacy: logs hold metadata only | ✅ | `api/app.py` logs counts and latency only; login logs carry no credentials; Bedrock errors log only the exception type; `Cache-Control: no-store` on `/api/*` | — |
 | Nothing written to disk or a database | ✅ | No writes in `src/`; the HF cache points to `/tmp`, offline mode (`Dockerfile`) | — |
-| No secrets in code, Dockerfile, workflows or history | ✅ | Regex scan of the whole history (AWS keys, HF and GitHub tokens, argon2 hashes, private keys): nothing found. `HF_TOKEN` is used in one workflow step only and is not passed to `docker build`; `.dockerignore` excludes `.env*`, `.git`, `.claude`, data and tests | Manual check M1 below |
+| No secrets in code, Dockerfile, workflows or history | ✅ | Regex scan of the whole history (AWS keys, HF and GitHub tokens, argon2 hashes, private keys): nothing found. `HF_TOKEN` is used in one workflow step only and is not passed to `docker build`; `.dockerignore` excludes `.env*`, `.git`, `.claude`, data and tests | M1 checked ✅ |
 | Pinned model revision, safetensors, lockfile, Dependabot | ✅ | 40-char commit SHA checked in the workflow (`config/model.json`, `deploy.yml`); `use_safetensors=True` and a file allowlist; `uv export --frozen` + `pip --require-hashes`; base images pinned by digest; Dependabot for `uv` and `github-actions` | **Fixed:** `ci.yml` pinned actions by tag; now by commit SHA like `deploy.yml` (finding 3) |
-| Least-privilege IAM | ✅ | Lambda: only `bedrock:InvokeModel` on the EU Haiku inference profile (`infra/iam/lambda-bedrock-policy.json`); deploy role limited to one ECR repo and one function; OIDC trust limited to the `production` environment | Manual check M2 below |
+| Least-privilege IAM | ✅ | Lambda: only `bedrock:InvokeModel` on the EU Haiku inference profile (`infra/iam/lambda-bedrock-policy.json`); deploy role limited to one ECR repo and one function; OIDC trust limited to the `production` environment | M2 checked ✅ |
 
 ## Findings
 
@@ -51,11 +51,17 @@ checked against `specs/design.md` §8 (NFR-06). Status: ✅ met · ⚠️ met wi
   parse a request up to the 6 MB Function URL limit. The parse is cheap compared with inference, and
   the 10,000-char check and the 401 run before the model is touched.
 
-### Manual checks for the author
+### Manual checks by the author (done 28 Nov 2026)
 
-- **M1** · `.env.example` must hold placeholders only (the agent's permissions do not let it read the file).
-- **M2** · In the IAM console, the Lambda role must have only `AWSLambdaBasicExecutionRole` and the
-  inline Bedrock policy attached (`docs/deployment.md`).
+- **M1 · ✅ `.env.example` holds no secrets.** `DEMO_PASSWORD_HASH`, `SESSION_SECRET` and `HF_TOKEN`
+  are empty; the rest are non-secret settings. Two example values are stale versus ADR-0009
+  (`CONFIDENCE_THRESHOLD=0.85` instead of `0.96`, `MAX_LLM_SENTENCES=10` instead of `8`). This is
+  not a security issue; the author will align them.
+- **M2 · ✅ Lambda role `clinical-deid-lambda` is least privilege.**
+  `aws iam list-attached-role-policies` returns only `AWSLambdaBasicExecutionRole`, and
+  `aws iam list-role-policies` returns no inline policies. The `bedrock-invoke` inline policy
+  (`docs/deployment.md` §8.3) is not attached yet because Bedrock access is blocked. When it is,
+  it must match `infra/iam/lambda-bedrock-policy.json`.
 
 ### Pending outside this task
 
