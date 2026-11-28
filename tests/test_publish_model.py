@@ -12,6 +12,7 @@ import pytest
 from modeling.publish.publish_model import (
     ALLOWED_FILES,
     build_model_card,
+    main,
     publish,
     select_files,
     write_model_config,
@@ -36,6 +37,20 @@ REPORT = {
         }
     }
 }
+COMPARISON = {
+    "configurations": {
+        "model_only": {
+            "status": "done",
+            "overall": {"precision": 0.881, "recall": 0.896, "f1": 0.888, "support": 5661},
+            "per_category": {
+                "ID": {"precision": 0.604, "recall": 0.719, "f1": 0.657, "support": 754},
+                "AGE": {"precision": 0.966, "recall": 0.977, "f1": 0.971, "support": 518},
+            },
+        },
+        "cascade": {"status": "pending"},
+    }
+}
+SYNTHETIC = {"overall": {"model_only": {"precision": 0.731, "recall": 0.679, "f1": 0.704}}}
 REPO_ID = "someone/clinical-deid-es-meddocan"
 SHA = "0123456789abcdef0123456789abcdef01234567"
 
@@ -103,6 +118,30 @@ def test_model_card_warns_it_is_not_for_real_patient_data():
     assert "not a certified" in build_model_card(RUN_LOG, REPORT).lower()
 
 
+def test_model_card_reports_character_level_and_synthetic_results():
+    card = build_model_card(RUN_LOG, REPORT, comparison=COMPARISON, synthetic=SYNTHETIC)
+
+    assert "character" in card.lower()
+    assert "0.896" in card  # character-level test recall
+    assert "| ID | 0.604 | 0.719 |" in card  # weakest category is visible
+    assert "0.704" in card  # synthetic notes F1
+
+
+def test_model_card_states_intended_and_out_of_scope_use():
+    card = build_model_card(RUN_LOG, REPORT)
+
+    assert "## Intended use" in card
+    assert "## Out-of-scope use" in card
+    assert "## How to use" in card
+
+
+def test_model_card_without_optional_reports_has_no_empty_sections():
+    card = build_model_card(RUN_LOG, REPORT)
+
+    assert "character" not in card.lower().split("## limitations")[0]
+    assert "synthetic notes" not in card.lower().split("## limitations")[0]
+
+
 # --- File selection ----------------------------------------------------------
 
 
@@ -162,6 +201,23 @@ def test_publish_uploads_nothing_when_weights_are_missing(tmp_path):
 
     assert hub.created == []
     assert hub.uploads == []
+
+
+# --- Card only ---------------------------------------------------------------
+
+
+def test_card_only_writes_the_card_without_token_or_upload(tmp_path, monkeypatch):
+    run_log, report, out = tmp_path / "run.json", tmp_path / "report.json", tmp_path / "card.md"
+    run_log.write_text(json.dumps(RUN_LOG), encoding="utf-8")
+    report.write_text(json.dumps(REPORT), encoding="utf-8")
+    monkeypatch.delenv("HF_TOKEN", raising=False)
+    monkeypatch.setattr(
+        "getpass.getpass", lambda *_: pytest.fail("card-only must not ask for a token")
+    )
+
+    main(["--run-log", str(run_log), "--report", str(report), "--card-only", str(out)])
+
+    assert out.read_text(encoding="utf-8").startswith("---\nlicense: apache-2.0")
 
 
 # --- Configuration -----------------------------------------------------------
