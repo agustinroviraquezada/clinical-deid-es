@@ -133,7 +133,7 @@ Checkpoint **13 Nov**: feature freeze. From here on, bug fixes only.
 - Hours: 1.5
 - Labels: security
 - Spec: NFR-04, NFR-06
-- Done when: 413 on size, reserved concurrency configured, CSP and headers, test that logs contain no text.
+- Done when: 413 on size, concurrency capped (account limit of 10, reserved concurrency not possible, ADR-0013), CSP and headers, test that logs contain no text.
 
 ### T4.4 · Synthetic demo notes
 - Hours: 1.5

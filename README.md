@@ -145,8 +145,9 @@ MEDDOCAN test set (250 documents, 5,661 entities). Full reports in
 - **Third party:** when the LLM step is on, an uncertain sentence leaves the service towards
   Bedrock (EU profile, no data retention by the provider). Mitigated by sending one sentence at a
   time.
-- **Abuse protection:** Lambda reserved concurrency could not be set (account quota of 10); the
-  login, the attempt limit and the AWS Budgets alerts are the remaining barriers.
+- **Abuse protection:** Lambda reserved concurrency could not be set (account quota of 10,
+  [ADR-0013](docs/adr/0013-account-concurrency-limit-as-cap.md)); the account limit caps parallel
+  runs at 10, and the login, the attempt limit and the AWS Budgets alerts are the remaining barriers.
 - **Not a certified system:** do not use it on real patient data.
 
 ## Test access
