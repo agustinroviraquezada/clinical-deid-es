@@ -50,7 +50,7 @@ health data.
 | NFR-01 | Text is processed in memory only; never stored on disk, in a database or in logs | DECIDED |
 | NFR-02 | Logs record metadata only: length, latency, number of entities and number sent to the LLM | DECIDED |
 | NFR-03 | Latency < 10 s per document in the demo, **excluding** cold starts | DECIDED |
-| NFR-04 | Abuse protection: Lambda reserved concurrency, in-app limits, Bedrock timeout, AWS Budgets alerts | DECIDED |
+| NFR-04 | Abuse protection: concurrency cap (account limit of 10, no reserved concurrency, ADR-0013), in-app limits, Bedrock timeout, AWS Budgets alerts | DECIDED |
 | NFR-05 | Total project cost ≤ €50 (≈€5 LLM, ≤€10 paid training, ≈€35 AWS), reviewable | DECIDED |
 | NFR-06 | Security covers LLM01 prompt injection, improper output handling, LLM10 unbounded consumption, XSS, authentication and supply chain (OWASP; LLM numbering from the 2025 edition) | DECIDED |
 | NFR-07 | Single AWS region: Ireland (`eu-west-1`); LLM with an EU inference profile | DECIDED |

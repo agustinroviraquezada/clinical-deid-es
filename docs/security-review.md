@@ -67,8 +67,8 @@ checked against `specs/design.md` §8 (NFR-06). Status: ✅ met · ⚠️ met wi
 
 - **P1 · Reserved concurrency (#26).** It cannot be set yet: the account's applied limit is 10 concurrent
   executions and AWS keeps 10 unreserved. That account limit caps parallel copies at 10 in the meantime.
-  A Service Quotas increase was requested. If it is not granted before submission, list it as a known
-  limitation in the README. The other LLM10 controls (character limit, call cap, time budget, timeouts,
+  Accepted as a known limitation in ADR-0013 (28 Nov 2026): the account limit of 10 is the cap, listed in
+  the README. The other LLM10 controls (character limit, call cap, time budget, timeouts,
   budget alerts) are in place.
 
 - The Bedrock steps in `docs/deployment.md` §8 stay pending until Bedrock access is unblocked.

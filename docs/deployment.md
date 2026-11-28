@@ -232,10 +232,10 @@ answer means no reservation is set yet. Requests beyond the cap get a 429 from t
 **Status (27 Nov 2026).** Not applied yet. The account's applied limit is 10 concurrent
 executions (`aws lambda get-account-settings`), so `put-function-concurrency` fails with
 `InvalidParameterValueException ... minimum value of [10]`. Service Quotas only accepts values
-above the default of 1,000, so the increase back to the default is requested through an AWS
-Support "Service limit increase" case (Lambda, EU (Ireland), Concurrent executions, 1,000).
-Until it is granted, the account limit of 10 is the implicit cap on parallel executions. Once
-granted, run the two commands above. Every `aws` command here assumes the right profile and
+above the default of 1,000; an increase would need an AWS Support "Service limit increase" case.
+**Decision (ADR-0013, 28 Nov 2026):** no case is opened and no reservation is set; the account
+limit of 10 is the cap on parallel executions. If the limit is ever raised, run the two commands
+above before turning the cascade on. Every `aws` command here assumes the right profile and
 region, for example `export AWS_PROFILE=deid-admin AWS_REGION=eu-west-1` after `aws login`.
 
 ```bash
