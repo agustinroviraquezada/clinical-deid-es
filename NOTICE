@@ -1,0 +1,14 @@
+clinical-deid-es
+Copyright 2026 Mr.Rovira Quezada
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Third-party attributions:
+
+- MEDDOCAN corpus (Barcelona Supercomputing Center, CNIO and Hospital 12 de Octubre; Plan TL),
+  licensed CC BY 4.0. Marimon et al., "Automatic De-identification of Medical Texts in Spanish:
+  the MEDDOCAN Track, Corpus, Guidelines, Methods and Evaluation of Results", IberLEF@SEPLN 2019,
+  pp. 618-638. doi:10.5281/zenodo.4279323. The corpus is not redistributed in this repository;
+  it is downloaded by script. The three example notes on the web page are MEDDOCAN test documents.
+- Base model BSC-LT/roberta-base-biomedical-clinical-es (Barcelona Supercomputing Center),
+  licensed Apache-2.0.

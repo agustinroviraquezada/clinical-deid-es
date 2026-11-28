@@ -155,7 +155,7 @@ Milestone **27 Nov**: public access open and tested from a phone. **28 Nov**: su
 - Hours: 2
 - Labels: docs
 - Spec: AC-07
-- Done when: README with every required section, test username and password, links, limitations; complete model card; model made public.
+- Done when: README with every required section, test username (password shared privately, ADR-0012), links, limitations; complete model card; model made public.
 
 ### T5.2 · Slides
 - Hours: 2.5
@@ -173,7 +173,7 @@ Milestone **27 Nov**: public access open and tested from a phone. **28 Nov**: su
 - Hours: 1.5
 - Labels: infra, submission
 - Spec: AC-06
-- Done when: Function URL set to `NONE` on 27 Nov, tested from another device, submission checklist reviewed, form submitted on 28 Nov.
+- Done when: Function URL set to `NONE` on 27 Nov, tested from another device, submission checklist reviewed (including the demo password sent privately to the evaluator, ADR-0012), form submitted on 28 Nov.
 
 ## After the grade
 

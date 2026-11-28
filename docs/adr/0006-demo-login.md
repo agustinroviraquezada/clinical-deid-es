@@ -1,6 +1,6 @@
 # ADR-0006 · Login with a single in-house demo account
 
-- **Status:** Accepted · 18 Oct 2026
+- **Status:** Accepted · 18 Oct 2026 · amended by ADR-0012 (password not in the README)
 
 ## Context
 The TFM specification requires a test username and password if there is a login, and the public URL needs a barrier against abuse.
