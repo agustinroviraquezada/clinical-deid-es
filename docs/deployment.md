@@ -615,13 +615,14 @@ and a new commit that only changes `README.md` does not touch those weights.
 
 2. Upload it as the repository's `README.md` with a **write** token (create a fine-grained one
    for this repository only, and delete it afterwards). The CLI asks for the token with a hidden
-   prompt:
+   prompt. Run each line **on its own**: if they are pasted together, the login prompt takes the
+   next pasted line as the token and the upload never runs.
 
    ```bash
-   uvx --from huggingface_hub hf auth login
-   uvx --from huggingface_hub hf upload ahrovira/clinical-deid-es-meddocan model-card.md README.md \
+   uvx --from 'huggingface_hub==2.4.0' hf auth login
+   uvx --from 'huggingface_hub==2.4.0' hf upload ahrovira/clinical-deid-es-meddocan model-card.md README.md \
      --commit-message "Update model card (T5.1)"
-   uvx --from huggingface_hub hf auth logout
+   uvx --from 'huggingface_hub==2.4.0' hf auth logout
    rm model-card.md
    ```
 

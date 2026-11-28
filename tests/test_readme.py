@@ -53,6 +53,46 @@ def test_relative_links_in_readme_point_to_existing_files():
     assert missing == []
 
 
+SECRET_PATTERNS = {
+    "argon2 hash": re.compile(r"\$argon2(id|i|d)\$v=\d+\$m="),
+    "Hugging Face token": re.compile(r"\bhf_[A-Za-z0-9]{30,}"),
+    "AWS access key": re.compile(r"\b(AKIA|ASIA)[0-9A-Z]{16}\b"),
+}
+PUBLIC_DOCS = [
+    ROOT / "README.md",
+    ROOT / "NOTICE",
+    *sorted((ROOT / "docs").rglob("*.md")),
+    *sorted((ROOT / "specs").rglob("*.md")),
+]
+
+
+@pytest.mark.security
+@pytest.mark.parametrize("path", PUBLIC_DOCS, ids=lambda p: p.relative_to(ROOT).as_posix())
+def test_public_docs_hold_no_secrets(path):
+    text = path.read_text(encoding="utf-8")
+    found = [name for name, pattern in SECRET_PATTERNS.items() if pattern.search(text)]
+    assert found == []
+
+
+@pytest.mark.security
+def test_readme_does_not_publish_the_demo_password():
+    (line,) = [ln for ln in README.splitlines() if ln.lstrip("- ").startswith("Password:")]
+    assert "shared privately" in line  # ADR-0012
+
+
+@pytest.mark.security
+@pytest.mark.parametrize(
+    "leak",
+    [
+        "$argon2id$v=19$m=65536,t=3,p=4$c2FsdA$aGFzaA",
+        "hf_" + "a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6",
+        "AKIA" + "ABCDEFGHIJKLMNOP",
+    ],
+)
+def test_secret_patterns_catch_typical_leaks(leak):
+    assert any(pattern.search(leak) for pattern in SECRET_PATTERNS.values())
+
+
 def test_code_licence_is_apache_2_with_notice():
     assert "Apache License" in (ROOT / "LICENSE").read_text(encoding="utf-8")
     notice = (ROOT / "NOTICE").read_text(encoding="utf-8")

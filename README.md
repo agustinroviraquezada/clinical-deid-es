@@ -58,8 +58,10 @@ uv run ruff check .
 Run the web tool locally:
 
 ```bash
-# 1. Download the model (public, ~500 MB) to models/, which git ignores.
-uvx --from huggingface_hub hf download ahrovira/clinical-deid-es-meddocan --local-dir ./models/meddocan
+# 1. Download the deployed revision of the model (public, ~500 MB, see config/model.json)
+#    to models/, which git ignores.
+uvx --from 'huggingface_hub==2.4.0' hf download ahrovira/clinical-deid-es-meddocan \
+  --revision faee550af3fadb65849292470365754671380d93 --local-dir ./models/meddocan
 
 # 2. Create .env with a demo password (stored only as an argon2 hash) and the model path.
 uv run python scripts/make_env.py --model-path ./models/meddocan
