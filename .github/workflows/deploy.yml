@@ -87,9 +87,15 @@ jobs:
 
       # The Lambda base image includes the RIE: it exposes the same "invoke" API as Lambda on
       # port 8080, so the real handler runs here exactly as it will in AWS.
+      # The emulator gets a throwaway SESSION_SECRET, random per run: it only lives in this CI
+      # container, is masked in the logs and never reaches the deployed Lambda or the repo.
+      # The next step uses it to sign a session cookie for the protected route.
       - name: Smoke test /api/health through the Lambda emulator
         run: |
-          docker run --detach --name lambda --publish 9000:8080 "$IMAGE"
+          SESSION_SECRET=$(openssl rand -hex 32)
+          echo "::add-mask::$SESSION_SECRET"
+          echo "SESSION_SECRET=$SESSION_SECRET" >> "$GITHUB_ENV"
+          docker run --detach --name lambda --publish 9000:8080             -e SESSION_SECRET="$SESSION_SECRET" "$IMAGE"
           cat > event.json <<'EOF'
           {
             "version": "2.0",
@@ -118,24 +124,38 @@ jobs:
           jq -r '.body' response.json | jq -e '.status == "ok"'
 
       # Same emulator, now through the real model: a synthetic note (invented, no real data) must
-      # come back with the patient name masked. The first call loads the model (cold start), so
-      # it gets a generous timeout.
+      # come back with the patient name masked. The route needs a session (T4.2), so:
+      #   1. without a cookie it must answer 401 (the login gate is in the image);
+      #   2. with a cookie signed by the app's own sign_session() it must answer 200.
+      # The password login itself is covered by tests/test_auth.py. The first call that reaches
+      # the model loads it (cold start), so it gets a generous timeout.
       - name: Smoke test /api/deidentify with the real model
         run: |
           note='Paciente Lucía Fernández, de 54 años, ingresó el 12/03/2025 en Teruel.'
-          jq -n --arg body "$(jq -cn --arg text "$note" '{text: $text}')" '{
-            version: "2.0", routeKey: "$default", rawPath: "/api/deidentify", rawQueryString: "",
-            headers: {host: "localhost", "content-type": "application/json"},
-            requestContext: {
-              http: {method: "POST", path: "/api/deidentify", protocol: "HTTP/1.1",
-                     sourceIp: "127.0.0.1", userAgent: "smoke-test"},
-              requestId: "smoke-test-deidentify", routeKey: "$default", stage: "$default"
-            },
-            body: $body, isBase64Encoded: false
-          }' > deidentify.json
-          curl --silent --fail --max-time 120 --output response.json \
-            --data @deidentify.json \
-            http://localhost:9000/2015-03-31/functions/function/invocations
+          invoke() {
+            # $1 = JSON array of cookies for the Function URL event (Mangum turns it into Cookie).
+            jq -n --arg body "$(jq -cn --arg text "$note" '{text: $text}')" --argjson cookies "$1" '{
+              version: "2.0", routeKey: "$default", rawPath: "/api/deidentify", rawQueryString: "",
+              cookies: $cookies,
+              headers: {host: "localhost", "content-type": "application/json"},
+              requestContext: {
+                http: {method: "POST", path: "/api/deidentify", protocol: "HTTP/1.1",
+                       sourceIp: "127.0.0.1", userAgent: "smoke-test"},
+                requestId: "smoke-test-deidentify", routeKey: "$default", stage: "$default"
+              },
+              body: $body, isBase64Encoded: false
+            }' > deidentify.json
+            curl --silent --fail --max-time 120 --output response.json               --data @deidentify.json               http://localhost:9000/2015-03-31/functions/function/invocations
+          }
+
+          invoke '[]'
+          echo "Without a session: $(jq -r '.statusCode' response.json)"
+          test "$(jq -r '.statusCode' response.json)" = "401"
+
+          sign='import os, time; from clinical_deid.api.auth import sign_session as s; print(s(int(time.time()) + 600, os.environ["SESSION_SECRET"]))'
+          token=$(docker run --rm --entrypoint python3 --workdir /var/task             -e SESSION_SECRET "$IMAGE" -c "$sign")
+          echo "::add-mask::$token"
+          invoke "$(jq -cn --arg c "deid_session=$token" '[$c]')"
           jq -r '.body' response.json | jq '{deidentified_text, metrics}'
           test "$(jq -r '.statusCode' response.json)" = "200"
           jq -r '.body' response.json | jq -e '.deidentified_text | contains("[NAME]")'

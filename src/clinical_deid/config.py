@@ -14,7 +14,8 @@ class Settings(BaseSettings):
     max_characters: int = Field(default=10_000, gt=0)
     # Both chosen on MEDDOCAN dev in T3.1 (ADR-0009, report api/report/threshold_dev.md).
     confidence_threshold: float = Field(default=0.96, ge=0.0, le=1.0)
-    max_llm_sentences: int = Field(default=8, ge=0)
+    # Upper bound caps Bedrock calls per request even if the variable is mistyped (LLM10).
+    max_llm_sentences: int = Field(default=8, ge=0, le=20)
     # Off unless the deployment opts in, so nothing calls Bedrock by accident (T3.5).
     llm_enabled: bool = False
     # Wall-clock limit for the LLM calls of one request. Worst case is this plus one call

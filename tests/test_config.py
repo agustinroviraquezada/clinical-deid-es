@@ -50,6 +50,8 @@ def test_environment_variables_override_defaults(monkeypatch):
         ("CONFIDENCE_THRESHOLD", "-0.1"),
         ("MAX_CHARACTERS", "0"),
         ("MAX_LLM_SENTENCES", "-1"),
+        # Cap on Bedrock calls per request (LLM10): a mistyped value must not raise spend.
+        ("MAX_LLM_SENTENCES", "21"),
     ],
 )
 def test_out_of_range_values_are_rejected(monkeypatch, name, value):
@@ -80,7 +82,14 @@ def test_llm_settings_read_from_environment(monkeypatch):
     assert settings.llm_time_budget_s == 20.0
 
 
-@pytest.mark.parametrize("value", ["0", "-5", "100"])
+@pytest.mark.security
+def test_max_llm_sentences_accepts_the_upper_bound(monkeypatch):
+    monkeypatch.setenv("MAX_LLM_SENTENCES", "20")
+
+    assert Settings().max_llm_sentences == 20
+
+
+@pytest.mark.parametrize("value", ["0", "-5", "91", "100"])
 def test_llm_time_budget_out_of_range_is_rejected(monkeypatch, value):
     monkeypatch.setenv("LLM_TIME_BUDGET_S", value)
 

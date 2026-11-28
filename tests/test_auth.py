@@ -84,6 +84,22 @@ def test_logout_ends_the_session(client):
     assert client.post("/api/deidentify", json={"text": NOTE}).status_code == 401
 
 
+def test_session_token_still_valid_after_logout(client):
+    """Accepted demo limit (docs/security-review.md): sessions are stateless HMAC tokens.
+
+    Logout only expires the cookie in the browser, so a token copied before logout keeps
+    working until it expires (SESSION_TTL_S). Rotating SESSION_SECRET revokes every session.
+    If server-side revocation is ever added, this test must be inverted.
+    """
+    _login(client)
+    token = client.cookies.get(auth.COOKIE_NAME)
+    client.post("/api/logout")
+
+    replay = TestClient(app, base_url="https://testserver", cookies={auth.COOKIE_NAME: token})
+
+    assert replay.post("/api/deidentify", json={"text": NOTE}).status_code == 200
+
+
 # ---------- 401 ----------
 
 
