@@ -20,3 +20,4 @@ date,hours,task,summary
 2026-11-27,1.0,T4.3,"Security headers and CSP middleware, generic 500 without text in logs, OpenAPI docs disabled; reserved concurrency blocked by account limit of 10"
 2026-11-27,2.0,T4.4,5 synthetic demo notes with hand-made gold and precomputed model-only results (F1 0.70)
 2026-11-28,2.0,T4.5,"Security review: fixed deploy smoke test (401 since T4.2), CI actions pinned by SHA, MAX_LLM_SENTENCES cap, report and slide draft"
+2026-11-28,2.0,T5.1,"Final README, extended model card with --card-only, Apache-2.0 LICENSE + NOTICE, ADR-0012, model made public"
